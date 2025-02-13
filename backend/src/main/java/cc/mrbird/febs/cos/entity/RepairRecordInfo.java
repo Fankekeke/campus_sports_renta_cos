@@ -10,14 +10,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * 用户管理
+ * 器械维修记录
  *
  * @author Fank gmail - fan1ke2ke@gmail.com
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class UserInfo implements Serializable {
+public class RepairRecordInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,45 +28,49 @@ public class UserInfo implements Serializable {
     private Integer id;
 
     /**
-     * 用户编号
+     * 维修编号
      */
     private String code;
 
     /**
-     * 用户昵称
+     * 维修主题
      */
-    private String name;
+    private String title;
 
     /**
-     * 头像
+     * 器械ID
      */
-    private String images;
+    private Integer deviceId;
 
     /**
-     * 性别 1.男 2.女
+     * 维修内容
      */
-    private Integer sex;
+    private String content;
+
+    /**
+     * 开始维修时间
+     */
+    private String repairStartDate;
+
+    /**
+     * 维修结束时间
+     */
+    private String repairEndDate;
+
+    /**
+     * 状态（0.未完成 1.已完成）
+     */
+    private String status;
+
+    /**
+     * 维修人
+     */
+    private Integer staffId;
 
     /**
      * 创建时间
      */
     private String createDate;
 
-    /**
-     * 联系方式
-     */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String email;
-
-    private Integer userId;
-
-    /**
-     * 信用分数
-     */
-    private Integer creditScore;
 
 }

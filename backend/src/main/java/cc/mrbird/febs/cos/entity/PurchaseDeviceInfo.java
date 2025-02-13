@@ -1,23 +1,25 @@
 package cc.mrbird.febs.cos.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * 用户管理
+ * 器械采购
  *
  * @author Fank gmail - fan1ke2ke@gmail.com
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class UserInfo implements Serializable {
+public class PurchaseDeviceInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,45 +30,35 @@ public class UserInfo implements Serializable {
     private Integer id;
 
     /**
-     * 用户编号
+     * 采购订单编号
      */
     private String code;
 
     /**
-     * 用户昵称
+     * 采购人
      */
-    private String name;
+    private Integer chargePerson;
 
     /**
-     * 头像
+     * 供应商ID
      */
-    private String images;
+    private Integer supplierId;
 
     /**
-     * 性别 1.男 2.女
+     * 采购备注
      */
-    private Integer sex;
+    private String content;
 
     /**
-     * 创建时间
+     * 采购总价
+     */
+    private BigDecimal totalPrice;
+
+    /**
+     * 采购时间
      */
     private String createDate;
 
-    /**
-     * 联系方式
-     */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String email;
-
-    private Integer userId;
-
-    /**
-     * 信用分数
-     */
-    private Integer creditScore;
-
+    @TableField(exist = false)
+    private String goods;
 }

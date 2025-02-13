@@ -1,6 +1,6 @@
 package cc.mrbird.febs.cos.entity;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.io.Serializable;
 
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -10,14 +10,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * 用户管理
+ * 采购详情
  *
  * @author Fank gmail - fan1ke2ke@gmail.com
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class UserInfo implements Serializable {
+public class PurchaseDetailInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,45 +28,39 @@ public class UserInfo implements Serializable {
     private Integer id;
 
     /**
-     * 用户编号
+     * 采购订单编号
      */
-    private String code;
+    private String purchaseCode;
 
     /**
-     * 用户昵称
+     * 器械名称
      */
     private String name;
 
     /**
-     * 头像
+     * 器械类型
      */
-    private String images;
+    private Integer typeId;
 
     /**
-     * 性别 1.男 2.女
+     * 型号
      */
-    private Integer sex;
+    private String model;
 
     /**
-     * 创建时间
+     * 品牌
      */
-    private String createDate;
+    private String brand;
 
     /**
-     * 联系方式
+     * 数量
      */
-    private String phone;
+    private Integer num;
 
     /**
-     * 邮箱
+     * 器械单价
      */
-    private String email;
+    private BigDecimal unitPrice;
 
-    private Integer userId;
-
-    /**
-     * 信用分数
-     */
-    private Integer creditScore;
 
 }

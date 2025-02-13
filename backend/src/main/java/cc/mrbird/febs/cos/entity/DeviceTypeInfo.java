@@ -10,14 +10,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * 用户管理
+ * 器械类型
  *
  * @author Fank gmail - fan1ke2ke@gmail.com
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class UserInfo implements Serializable {
+public class DeviceTypeInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,45 +28,34 @@ public class UserInfo implements Serializable {
     private Integer id;
 
     /**
-     * 用户编号
+     * 器械编号
      */
     private String code;
 
     /**
-     * 用户昵称
+     * 器械类型名称
      */
     private String name;
 
     /**
-     * 头像
+     * 备注
      */
-    private String images;
+    private String content;
 
     /**
-     * 性别 1.男 2.女
+     * 删除标识（0.未删除 1.已删除）
      */
-    private Integer sex;
+    private String delFlag;
+
+    /**
+     * 图片
+     */
+    private String images;
 
     /**
      * 创建时间
      */
     private String createDate;
 
-    /**
-     * 联系方式
-     */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String email;
-
-    private Integer userId;
-
-    /**
-     * 信用分数
-     */
-    private Integer creditScore;
 
 }

@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * 消息通知
  * @author Fank gmail - fan1ke2ke@gmail.com
  */
 @RestController

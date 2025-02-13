@@ -21,8 +21,6 @@ public class PayController {
     @Autowired
     private PayService payService;
     @Autowired
-    private IMemberRecordInfoService memberRecordInfoService;
-    @Autowired
     private IUserInfoService userInfoService;
 
     /**
@@ -43,33 +41,33 @@ public class PayController {
         return R.ok(result);
     }
 
-    /**
-     * 购买会员
-     * @param subject
-     * @param body
-     * @return
-     * @throws AlipayApiException
-     */
-    @PostMapping(value = "/member")
-    public R alipayMember(String subject, String totalAmount, String body, Integer ruleId, Integer userId) throws AlipayApiException {
-        // 获取用户信息
-        UserInfo userInfo = userInfoService.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
-
-        MemberRecordInfo memberRecordInfo = new MemberRecordInfo();
-        memberRecordInfo.setStatus("0");
-        memberRecordInfo.setMemberId(ruleId);
-        memberRecordInfo.setCode("MEM-" + System.currentTimeMillis());
-        memberRecordInfo.setUserId(userInfo.getId());
-        memberRecordInfo.setPrice(new BigDecimal(totalAmount));
-        memberRecordInfoService.save(memberRecordInfo);
-
-        AlipayBean alipayBean = new AlipayBean();
-        alipayBean.setOut_trade_no(memberRecordInfo.getCode());
-        alipayBean.setSubject(subject);
-        alipayBean.setTotal_amount(totalAmount);
-        alipayBean.setBody(body);
-        String result = payService.aliPay(alipayBean);
-        return R.ok(result);
-    }
+//    /**
+//     * 购买会员
+//     * @param subject
+//     * @param body
+//     * @return
+//     * @throws AlipayApiException
+//     */
+//    @PostMapping(value = "/member")
+//    public R alipayMember(String subject, String totalAmount, String body, Integer ruleId, Integer userId) throws AlipayApiException {
+//        // 获取用户信息
+//        UserInfo userInfo = userInfoService.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
+//
+//        MemberRecordInfo memberRecordInfo = new MemberRecordInfo();
+//        memberRecordInfo.setStatus("0");
+//        memberRecordInfo.setMemberId(ruleId);
+//        memberRecordInfo.setCode("MEM-" + System.currentTimeMillis());
+//        memberRecordInfo.setUserId(userInfo.getId());
+//        memberRecordInfo.setPrice(new BigDecimal(totalAmount));
+//        memberRecordInfoService.save(memberRecordInfo);
+//
+//        AlipayBean alipayBean = new AlipayBean();
+//        alipayBean.setOut_trade_no(memberRecordInfo.getCode());
+//        alipayBean.setSubject(subject);
+//        alipayBean.setTotal_amount(totalAmount);
+//        alipayBean.setBody(body);
+//        String result = payService.aliPay(alipayBean);
+//        return R.ok(result);
+//    }
 
 }
