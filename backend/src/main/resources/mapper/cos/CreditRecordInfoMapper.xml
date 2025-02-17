@@ -2,4 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.mrbird.febs.cos.dao.CreditRecordInfoMapper">
 
+    <!-- 分页获取信用积分记录 -->
+    <select id="queryCreditPage" resultType="java.util.LinkedHashMap">
+        select cri.id,
+               cri.user_id,
+               cri.`type`,
+               cri.score,
+               cri.after_score,
+               cri.content,
+               cri.create_date,
+               ui.name   as userName,
+               ui.images as userImages,
+               ui.phone
+        from credit_record_info cri
+                 left join user_info ui on
+            (ui.id = cri.user_id)
+        where 1 = 1
+        order by cri.create_date desc
+    </select>
 </mapper>
