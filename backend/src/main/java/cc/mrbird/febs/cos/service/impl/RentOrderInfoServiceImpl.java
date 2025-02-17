@@ -8,8 +8,10 @@ import cc.mrbird.febs.cos.entity.*;
 import cc.mrbird.febs.cos.dao.RentOrderInfoMapper;
 import cc.mrbird.febs.cos.service.*;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,12 +20,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Fank gmail - fan1ke2ke@gmail.com
@@ -45,6 +46,10 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
     private final StaffInfoMapper staffInfoMapper;
 
     private final IBulletinInfoService bulletinInfoService;
+
+    private final TemplateEngine templateEngine;
+
+    private final IMailService mailService;
 
     /**
      * 分页获取租借订单
@@ -151,6 +156,17 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
         messageInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         messageInfoService.save(messageInfo);
 
+        // 获取用户信息
+        UserInfo userInfo = userInfoMapper.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, rentOrderInfo.getUserId()));
+        // 发送邮件
+        if (userInfo != null && StrUtil.isNotEmpty(userInfo.getEmail())) {
+            Context context = new Context();
+            context.setVariable("today", DateUtil.formatDate(new Date()));
+            context.setVariable("custom", userInfo.getName() + "，您有一笔租借订单已完成支付，请在 " + rentOrderInfo.getEndDate() + " 前及时归还设备，请注意查看");
+            String emailContent = templateEngine.process("registerEmail", context);
+            mailService.sendHtmlMail(userInfo.getEmail(), DateUtil.formatDate(new Date()) + "支付提示", emailContent);
+        }
+
         return this.updateById(rentOrderInfo);
     }
 
@@ -211,6 +227,15 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
             messageInfo.setStatus("0");
             messageInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
             messageInfoService.save(messageInfo);
+
+            // 发送邮件
+            if (StrUtil.isNotEmpty(userInfo.getEmail())) {
+                Context context = new Context();
+                context.setVariable("today", DateUtil.formatDate(new Date()));
+                context.setVariable("custom", userInfo.getName() + "，订单-" + rentOrderInfo.getCode() + "逾期归还，信用分-10，请注意查看");
+                String emailContent = templateEngine.process("registerEmail", context);
+                mailService.sendHtmlMail(userInfo.getEmail(), DateUtil.formatDate(new Date()) + "归还提示", emailContent);
+            }
         } else {
             userInfo.setCreditScore(userInfo.getCreditScore() + 10);
             userInfoMapper.updateById(userInfo);
@@ -231,6 +256,15 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
             messageInfo.setStatus("0");
             messageInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
             messageInfoService.save(messageInfo);
+
+            // 发送邮件
+            if (StrUtil.isNotEmpty(userInfo.getEmail())) {
+                Context context = new Context();
+                context.setVariable("today", DateUtil.formatDate(new Date()));
+                context.setVariable("custom", userInfo.getName() + "，订单-" + rentOrderInfo.getCode() + "在 " + rentOrderInfo.getEndDate() + " 前归还，信用分+10，请注意查看");
+                String emailContent = templateEngine.process("registerEmail", context);
+                mailService.sendHtmlMail(userInfo.getEmail(), DateUtil.formatDate(new Date()) + "归还提示", emailContent);
+            }
         }
         rentOrderInfo.setStatus("2");
         rentOrderInfo.setReturnDate(DateUtil.formatDateTime(new Date()));
@@ -254,6 +288,37 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
         // 订单状态完成
         rentOrderInfo.setStatus("3");
         return this.updateById(rentOrderInfo);
+    }
+
+    /**
+     * 检测用户是否存在快超时租借订单
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    @Override
+    public List<RentOrderInfo> rendOrderMessage(Integer userId) {
+        // 获取用户信息
+        UserInfo userInfo = userInfoMapper.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
+        if (userInfo == null) {
+            return null;
+        }
+        // 获取用户订单未归还订单
+        List<RentOrderInfo> orderList = this.list(Wrappers.<RentOrderInfo>lambdaQuery().eq(RentOrderInfo::getUserId, userInfo.getId()).eq(RentOrderInfo::getStatus, 1));
+        if (CollectionUtil.isEmpty(orderList)) {
+            return null;
+        }
+
+        List<RentOrderInfo> result = new ArrayList<>();
+        // 校验订单中是否存在三小时后过期
+        for (RentOrderInfo rentOrderInfo : orderList) {
+            // 获取订单剩余时间
+            long remainTime = DateUtil.between(new Date(), DateUtil.parseDateTime(rentOrderInfo.getEndDate()), DateUnit.HOUR);
+            if (remainTime <= 3) {
+                result.add(rentOrderInfo);
+            }
+        }
+        return result;
     }
 
     /**

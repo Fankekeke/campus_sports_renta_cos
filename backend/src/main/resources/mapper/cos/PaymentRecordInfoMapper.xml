@@ -2,4 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.mrbird.febs.cos.dao.PaymentRecordInfoMapper">
 
+    <!-- 分页获取支付记录 -->
+    <select id="queryPaymentRecordPage" resultType="java.util.LinkedHashMap">
+        select pri.id,
+               pri.order_code,
+               pri.user_id,
+               pri.order_price,
+               pri.pay_date,
+               ui.name    as userName,
+               ui.images  as userImages,
+               ui.phone,
+               roi.start_date,
+               roi.end_date,
+               di.name,
+               di.content,
+               di.model,
+               di.brand,
+               dti.name   as typeName,
+               dti.images as typeImages
+        from payment_record_info pri
+                 left join user_info ui on
+            (ui.id = pri.user_id)
+                 left join rent_order_info roi on
+            (roi.code = pri.order_code)
+                 left join device_info di on
+            (di.id = roi.device_id)
+                 left join device_type_info dti on
+            (dti.id = di.type_id)
+        where 1 = 1
+        order by pri.pay_date desc
+    </select>
 </mapper>

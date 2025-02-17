@@ -2,4 +2,32 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.mrbird.febs.cos.dao.RepairRecordInfoMapper">
 
+    <!-- 分页获取器械维修 -->
+    <select id="queryRepairPage" resultType="java.util.LinkedHashMap">
+        select rei.id,
+               rei.code,
+               rei.title,
+               rei.device_id,
+               rei.content,
+               rei.repair_start_date,
+               rei.repair_end_date,
+               rei.status,
+               rei.staff_id,
+               rei.create_date,
+               di.name,
+               di.content,
+               di.model,
+               di.brand,
+               si.name   as staffName,
+               si.images as staffImages,
+               si.phone  as staffPhone
+        from repair_record_info rei
+                 left join device_info di on
+            (di.id = rei.device_id)
+                 left join staff_info si on
+            (si.id = rei.staff_id)
+        where 1 = 1
+        order by rei.create_date desc
+    </select>
+
 </mapper>

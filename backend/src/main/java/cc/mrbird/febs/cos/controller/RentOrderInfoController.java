@@ -104,6 +104,17 @@ public class RentOrderInfoController {
     }
 
     /**
+     * 检测用户是否存在快超时租借订单
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    @GetMapping("/rendOrderMessage")
+    public R rendOrderMessage(@RequestParam("userId") Integer userId) {
+        return R.ok(rentOrderInfoService.rendOrderMessage(userId));
+    }
+
+    /**
      * 租借订单详情
      *
      * @param id 器械ID

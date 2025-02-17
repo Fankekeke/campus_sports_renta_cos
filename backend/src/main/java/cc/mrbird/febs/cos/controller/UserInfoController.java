@@ -6,14 +6,18 @@ import cc.mrbird.febs.cos.entity.CreditRecordInfo;
 import cc.mrbird.febs.cos.entity.MessageInfo;
 import cc.mrbird.febs.cos.entity.UserInfo;
 import cc.mrbird.febs.cos.service.ICreditRecordInfoService;
+import cc.mrbird.febs.cos.service.IMailService;
 import cc.mrbird.febs.cos.service.IMessageInfoService;
 import cc.mrbird.febs.cos.service.IUserInfoService;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.util.Date;
 import java.util.List;
@@ -31,6 +35,10 @@ public class UserInfoController {
     private final ICreditRecordInfoService creditRecordInfoService;
 
     private final IMessageInfoService messageInfoService;
+
+    private final TemplateEngine templateEngine;
+
+    private final IMailService mailService;
 
     /**
      * 分页获取用户信息
@@ -74,6 +82,15 @@ public class UserInfoController {
             messageInfo.setStatus("0");
             messageInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
             messageInfoService.save(messageInfo);
+
+            // 发送邮件
+            if (StrUtil.isNotEmpty(userInfo.getEmail())) {
+                Context context = new Context();
+                context.setVariable("today", DateUtil.formatDate(new Date()));
+                context.setVariable("custom", userInfo.getName() + "，您的信用积分已经重置，系统赠送信用积分60分，请注意查看");
+                String emailContent = templateEngine.process("registerEmail", context);
+                mailService.sendHtmlMail(userInfo.getEmail(), DateUtil.formatDate(new Date()) + "信用积分变更提示", emailContent);
+            }
             return R.ok(userInfoService.updateById(userInfo));
         }
         return R.ok();

@@ -2,4 +2,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.mrbird.febs.cos.dao.PurchaseDeviceInfoMapper">
 
+    <!-- 分页获取器材采购记录 -->
+    <select id="queryPurchaseDevicePage" resultType="java.util.LinkedHashMap">
+        select pdi.id,
+               pdi.code,
+               pdi.charge_person,
+               pdi.supplier_id,
+               pdi.content,
+               pdi.total_price,
+               pdi.create_date,
+               ei.name                           as supplierName,
+               ei.corporate_representative_phone as supplierPhone
+        from purchase_device_info pdi
+                 left join enterprise_info ei on
+            (ei.id = pdi.supplier_id)
+        where 1 = 1
+        order by pdi.create_date desc
+    </select>
 </mapper>

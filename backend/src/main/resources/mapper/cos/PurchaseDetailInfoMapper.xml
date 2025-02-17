@@ -2,4 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.mrbird.febs.cos.dao.PurchaseDetailInfoMapper">
 
+    <!-- 分页获取采购详情 -->
+    <select id="queryPurchaseDeatilPage" resultType="java.util.LinkedHashMap">
+        select pdi.id,
+               pdi.purchase_code,
+               pdi.name,
+               pdi.type_id,
+               pdi.model,
+               pdi.brand,
+               pdi.num,
+               pdi.unit_price,
+               dti.name   as typeName,
+               dti.images as typeImages
+        from purchase_detail_info pdi
+                 left join device_type_info dti on
+            (dti.id = pdi.type_id)
+        where 1 = 1
+        order by pdi.purchase_code
+    </select>
 </mapper>
