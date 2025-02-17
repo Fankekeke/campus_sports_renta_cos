@@ -7,18 +7,18 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="用户名称"
+                label="用户编号"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.name"/>
+                <a-input v-model="queryParams.code"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="用户编号"
+                label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.userCode"/>
+                <a-input v-model="queryParams.name"/>
               </a-form-item>
             </a-col>
           </div>
@@ -32,7 +32,7 @@
     <div>
       <div class="operator">
 <!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
-        <a-button @click="batchDelete">删除</a-button>
+<!--        <a-button @click="batchDelete">删除</a-button>-->
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -45,38 +45,38 @@
                :scroll="{ x: 900 }"
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="file-search" @click="recordViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon type="file-search" @click="userViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
-    <record-view
-      @close="handlerecordViewClose"
-      :recordShow="recordView.visiable"
-      :recordData="recordView.data">
-    </record-view>
+    <user-view
+      @close="handleuserViewClose"
+      :userShow="userView.visiable"
+      :userData="userView.data">
+    </user-view>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import recordView from './RecordView.vue'
+import userView from './UserView.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'record',
-  components: {recordView, RangeDate},
+  name: 'user',
+  components: {userView, RangeDate},
   data () {
     return {
       advanced: false,
-      recordAdd: {
+      userAdd: {
         visiable: false
       },
-      recordEdit: {
+      userEdit: {
         visiable: false
       },
-      recordView: {
+      userView: {
         visiable: false,
         data: null
       },
@@ -104,7 +104,7 @@ export default {
     }),
     columns () {
       return [ {
-        title: '订单编号',
+        title: '用户编号',
         dataIndex: 'code',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -121,6 +121,19 @@ export default {
             return text
           } else {
             return '- -'
+          }
+        }
+      }, {
+        title: '性别',
+        dataIndex: 'sex',
+        customRender: (text, row, index) => {
+          switch (text) {
+            case 1:
+              return <a-tag>男</a-tag>
+            case 2:
+              return <a-tag>女</a-tag>
+            default:
+              return '- -'
           }
         }
       }, {
@@ -146,8 +159,8 @@ export default {
           }
         }
       }, {
-        title: '会员名称',
-        dataIndex: 'memberName',
+        title: '邮箱地址',
+        dataIndex: 'email',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -156,31 +169,8 @@ export default {
           }
         }
       }, {
-        title: '支付状态',
-        dataIndex: 'status',
-        customRender: (text, row, index) => {
-          switch (text) {
-            case '0':
-              return <a-tag color="red">未支付</a-tag>
-            case '1':
-              return <a-tag color="green">已支付</a-tag>
-            default:
-              return '- -'
-          }
-        }
-      }, {
-        title: '价格',
-        dataIndex: 'price',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '支付时间',
-        dataIndex: 'payDate',
+        title: '创建时间',
+        dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -206,32 +196,32 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.recordAdd.visiable = true
+      this.userAdd.visiable = true
     },
-    handlerecordAddClose () {
-      this.recordAdd.visiable = false
+    handleuserAddClose () {
+      this.userAdd.visiable = false
     },
-    handlerecordAddSuccess () {
-      this.recordAdd.visiable = false
+    handleuserAddSuccess () {
+      this.userAdd.visiable = false
       this.$message.success('新增会员成功')
       this.search()
     },
     edit (record) {
-      this.$refs.recordEdit.setFormValues(record)
-      this.recordEdit.visiable = true
+      this.$refs.userEdit.setFormValues(record)
+      this.userEdit.visiable = true
     },
-    recordViewOpen (row) {
-      this.recordView.data = row
-      this.recordView.visiable = true
+    userViewOpen (row) {
+      this.userView.data = row
+      this.userView.visiable = true
     },
-    handlerecordViewClose () {
-      this.recordView.visiable = false
+    handleuserViewClose () {
+      this.userView.visiable = false
     },
-    handlerecordEditClose () {
-      this.recordEdit.visiable = false
+    handleuserEditClose () {
+      this.userEdit.visiable = false
     },
-    handlerecordEditSuccess () {
-      this.recordEdit.visiable = false
+    handleuserEditSuccess () {
+      this.userEdit.visiable = false
       this.$message.success('修改会员成功')
       this.search()
     },
@@ -250,7 +240,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/member-payment-info/' + ids).then(() => {
+          that.$delete('/cos/user-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -323,7 +313,7 @@ export default {
       if (params.delFlag === undefined) {
         delete params.delFlag
       }
-      this.$get('/cos/member-payment-info/page', {
+      this.$get('/cos/user-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

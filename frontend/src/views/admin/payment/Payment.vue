@@ -59,7 +59,7 @@
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import recordView from './RecordView.vue'
+import recordView from './PaymentView.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')

@@ -15,10 +15,10 @@
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="用户编号"
+                label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.userCode"/>
+                <a-input v-model="queryParams.code"/>
               </a-form-item>
             </a-col>
           </div>
@@ -44,39 +44,49 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
+        <template slot="contentShow" slot-scope="text, record">
+          <template>
+            <a-tooltip>
+              <template slot="title">
+                {{ record.content }}
+              </template>
+              {{ record.content.slice(0, 20) }} ...
+            </a-tooltip>
+          </template>
+        </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="file-search" @click="recordViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon type="file-search" @click="memberViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
-    <record-view
-      @close="handlerecordViewClose"
-      :recordShow="recordView.visiable"
-      :recordData="recordView.data">
-    </record-view>
+    <member-view
+      @close="handlememberViewClose"
+      :memberShow="memberView.visiable"
+      :memberData="memberView.data">
+    </member-view>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import recordView from './RecordView.vue'
+import memberView from './MessageView.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'record',
-  components: {recordView, RangeDate},
+  name: 'member',
+  components: {memberView, RangeDate},
   data () {
     return {
       advanced: false,
-      recordAdd: {
+      memberAdd: {
         visiable: false
       },
-      recordEdit: {
+      memberEdit: {
         visiable: false
       },
-      recordView: {
+      memberView: {
         visiable: false,
         data: null
       },
@@ -104,15 +114,8 @@ export default {
     }),
     columns () {
       return [ {
-        title: '订单编号',
-        dataIndex: 'code',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
+        title: '用户编号',
+        dataIndex: 'code'
       }, {
         title: '用户名称',
         dataIndex: 'name',
@@ -136,51 +139,25 @@ export default {
           </a-popover>
         }
       }, {
-        title: '联系方式',
-        dataIndex: 'phone',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
+        title: '消息内容',
+        dataIndex: 'content',
+        scopedSlots: { customRender: 'contentShow' }
       }, {
-        title: '会员名称',
-        dataIndex: 'memberName',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '支付状态',
+        title: '消息状态',
         dataIndex: 'status',
         customRender: (text, row, index) => {
           switch (text) {
             case '0':
-              return <a-tag color="red">未支付</a-tag>
+              return <a-tag>未读</a-tag>
             case '1':
-              return <a-tag color="green">已支付</a-tag>
+              return <a-tag>已读</a-tag>
             default:
               return '- -'
           }
         }
       }, {
-        title: '价格',
-        dataIndex: 'price',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '支付时间',
-        dataIndex: 'payDate',
+        title: '发送时间',
+        dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -206,32 +183,32 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.recordAdd.visiable = true
+      this.memberAdd.visiable = true
     },
-    handlerecordAddClose () {
-      this.recordAdd.visiable = false
+    handlememberAddClose () {
+      this.memberAdd.visiable = false
     },
-    handlerecordAddSuccess () {
-      this.recordAdd.visiable = false
+    handlememberAddSuccess () {
+      this.memberAdd.visiable = false
       this.$message.success('新增会员成功')
       this.search()
     },
     edit (record) {
-      this.$refs.recordEdit.setFormValues(record)
-      this.recordEdit.visiable = true
+      this.$refs.memberEdit.setFormValues(record)
+      this.memberEdit.visiable = true
     },
-    recordViewOpen (row) {
-      this.recordView.data = row
-      this.recordView.visiable = true
+    memberViewOpen (row) {
+      this.memberView.data = row
+      this.memberView.visiable = true
     },
-    handlerecordViewClose () {
-      this.recordView.visiable = false
+    handlememberViewClose () {
+      this.memberView.visiable = false
     },
-    handlerecordEditClose () {
-      this.recordEdit.visiable = false
+    handlememberEditClose () {
+      this.memberEdit.visiable = false
     },
-    handlerecordEditSuccess () {
-      this.recordEdit.visiable = false
+    handlememberEditSuccess () {
+      this.memberEdit.visiable = false
       this.$message.success('修改会员成功')
       this.search()
     },
@@ -250,7 +227,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/member-payment-info/' + ids).then(() => {
+          that.$delete('/cos/message-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -323,7 +300,7 @@ export default {
       if (params.delFlag === undefined) {
         delete params.delFlag
       }
-      this.$get('/cos/member-payment-info/page', {
+      this.$get('/cos/message-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

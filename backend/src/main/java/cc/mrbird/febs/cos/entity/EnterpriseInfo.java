@@ -152,6 +152,4 @@ public class EnterpriseInfo implements Serializable {
     private String createDate;
 
     private String images;
-
-    private Integer userId;
 }

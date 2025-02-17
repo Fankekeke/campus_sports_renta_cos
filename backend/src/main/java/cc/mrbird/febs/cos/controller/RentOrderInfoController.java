@@ -77,7 +77,7 @@ public class RentOrderInfoController {
      * @param orderCode 订单编号
      * @return 结果
      */
-    @GetMapping("/returnDevice")
+    @GetMapping("/checkReturnDevice")
     public R checkReturnDevice(@RequestParam("orderCode") String orderCode) {
         return R.ok(rentOrderInfoService.checkReturnDevice(orderCode));
     }
@@ -156,4 +156,6 @@ public class RentOrderInfoController {
     public R deleteByIds(@PathVariable("ids") List<Integer> ids) {
         return R.ok(rentOrderInfoService.removeByIds(ids));
     }
+
+
 }

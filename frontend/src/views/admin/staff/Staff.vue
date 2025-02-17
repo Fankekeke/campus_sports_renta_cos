@@ -7,7 +7,7 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="用户名称"
+                label="员工姓名"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
                 <a-input v-model="queryParams.name"/>
@@ -15,10 +15,10 @@
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="用户编号"
+                label="员工编号"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.userCode"/>
+                <a-input v-model="queryParams.code"/>
               </a-form-item>
             </a-col>
           </div>
@@ -31,7 +31,7 @@
     </div>
     <div>
       <div class="operator">
-<!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
+        <a-button type="primary" ghost @click="add">新增</a-button>
         <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
@@ -44,41 +44,59 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
+        <template slot="titleShow" slot-scope="text, record">
+          <template>
+            <a-badge status="processing" v-if="record.rackUp === 1"/>
+            <a-badge status="error" v-if="record.rackUp === 0"/>
+            <a-tooltip>
+              <template slot="title">
+                {{ record.title }}
+              </template>
+              {{ record.title.slice(0, 8) }} ...
+            </a-tooltip>
+          </template>
+        </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="file-search" @click="recordViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.status == 2" type="caret-up" @click="editStatus(record, 1)" title="修 改"/>
+          <a-icon v-if="record.status == 1" type="caret-down" @click="editStatus(record, 2)" title="修 改"/>
+          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
-    <record-view
-      @close="handlerecordViewClose"
-      :recordShow="recordView.visiable"
-      :recordData="recordView.data">
-    </record-view>
+    <staff-add
+      v-if="staffAdd.visiable"
+      @close="handlestaffAddClose"
+      @success="handlestaffAddSuccess"
+      :staffAddVisiable="staffAdd.visiable">
+    </staff-add>
+    <staff-edit
+      ref="staffEdit"
+      @close="handlestaffEditClose"
+      @success="handlestaffEditSuccess"
+      :staffEditVisiable="staffEdit.visiable">
+    </staff-edit>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import recordView from './RecordView.vue'
+import staffAdd from './StaffAdd'
+import staffEdit from './StaffEdit'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'record',
-  components: {recordView, RangeDate},
+  name: 'staff',
+  components: {staffAdd, staffEdit, RangeDate},
   data () {
     return {
       advanced: false,
-      recordAdd: {
+      staffAdd: {
         visiable: false
       },
-      recordEdit: {
+      staffEdit: {
         visiable: false
-      },
-      recordView: {
-        visiable: false,
-        data: null
       },
       queryParams: {},
       filteredInfo: null,
@@ -103,38 +121,12 @@ export default {
       currentUser: state => state.account.user
     }),
     columns () {
-      return [ {
-        title: '订单编号',
-        dataIndex: 'code',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
+      return [{
+        title: '员工姓名',
+        dataIndex: 'name'
       }, {
-        title: '用户名称',
-        dataIndex: 'name',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '用户头像',
-        dataIndex: 'images',
-        customRender: (text, record, index) => {
-          if (!record.images) return <a-avatar shape="square" icon="user" />
-          return <a-popover>
-            <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
-            </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
-          </a-popover>
-        }
+        title: '员工编号',
+        dataIndex: 'code'
       }, {
         title: '联系方式',
         dataIndex: 'phone',
@@ -146,41 +138,46 @@ export default {
           }
         }
       }, {
-        title: '会员名称',
-        dataIndex: 'memberName',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
+        title: '员工照片',
+        dataIndex: 'images',
+        customRender: (text, record, index) => {
+          if (!record.images) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+          </a-popover>
         }
       }, {
-        title: '支付状态',
-        dataIndex: 'status',
+        title: '性别',
+        dataIndex: 'sex',
         customRender: (text, row, index) => {
           switch (text) {
-            case '0':
-              return <a-tag color="red">未支付</a-tag>
-            case '1':
-              return <a-tag color="green">已支付</a-tag>
+            case 1:
+              return <a-tag>男</a-tag>
+            case 2:
+              return <a-tag>女</a-tag>
             default:
               return '- -'
           }
         }
       }, {
-        title: '价格',
-        dataIndex: 'price',
+        title: '状态',
+        dataIndex: 'status',
         customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
+          switch (text) {
+            case 1:
+              return <a-tag color="green">正常</a-tag>
+            case 2:
+              return <a-tag color="red">异常</a-tag>
+            default:
+              return '- -'
           }
         }
       }, {
-        title: '支付时间',
-        dataIndex: 'payDate',
+        title: '创建时间',
+        dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -199,6 +196,12 @@ export default {
     this.fetch()
   },
   methods: {
+    editStatus (row, status) {
+      this.$post('/cos/staff-info/account/status', { staffId: row.id, status }).then((r) => {
+        this.$message.success('修改成功')
+        this.fetch()
+      })
+    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -206,33 +209,26 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.recordAdd.visiable = true
+      this.staffAdd.visiable = true
     },
-    handlerecordAddClose () {
-      this.recordAdd.visiable = false
+    handlestaffAddClose () {
+      this.staffAdd.visiable = false
     },
-    handlerecordAddSuccess () {
-      this.recordAdd.visiable = false
-      this.$message.success('新增会员成功')
+    handlestaffAddSuccess () {
+      this.staffAdd.visiable = false
+      this.$message.success('新增员工成功')
       this.search()
     },
     edit (record) {
-      this.$refs.recordEdit.setFormValues(record)
-      this.recordEdit.visiable = true
+      this.$refs.staffEdit.setFormValues(record)
+      this.staffEdit.visiable = true
     },
-    recordViewOpen (row) {
-      this.recordView.data = row
-      this.recordView.visiable = true
+    handlestaffEditClose () {
+      this.staffEdit.visiable = false
     },
-    handlerecordViewClose () {
-      this.recordView.visiable = false
-    },
-    handlerecordEditClose () {
-      this.recordEdit.visiable = false
-    },
-    handlerecordEditSuccess () {
-      this.recordEdit.visiable = false
-      this.$message.success('修改会员成功')
+    handlestaffEditSuccess () {
+      this.staffEdit.visiable = false
+      this.$message.success('修改员工成功')
       this.search()
     },
     handleDeptChange (value) {
@@ -250,7 +246,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/member-payment-info/' + ids).then(() => {
+          that.$delete('/cos/staff-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -320,10 +316,7 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      if (params.delFlag === undefined) {
-        delete params.delFlag
-      }
-      this.$get('/cos/member-payment-info/page', {
+      this.$get('/cos/staff-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

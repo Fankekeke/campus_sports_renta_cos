@@ -31,8 +31,7 @@
         industry,
         unit_description,
         create_date,
-        images,
-        user_id
+        images
         from
         enterprise_info
         where

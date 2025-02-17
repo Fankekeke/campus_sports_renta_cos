@@ -96,19 +96,9 @@ public class StaffInfo implements Serializable {
     private String delFlag;
 
     /**
-     * 所属部门
-     */
-    private Integer deptId;
-
-    /**
      * 用户ID
      */
     private Integer userId;
-
-    /**
-     * 岗位管理
-     */
-    private Integer positionId;
 
 
 }
