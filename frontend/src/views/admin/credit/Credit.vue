@@ -7,26 +7,21 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="器材型号"
+                label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.model"/>
+                <a-input v-model="queryParams.userName"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="器材名称"
+                label="操作类型"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.name"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="器材类型"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.typeName"/>
+                <a-select v-model="queryParams.type" allowClear>
+                  <a-select-option value="1">加分</a-select-option>
+                  <a-select-option value="2">扣分</a-select-option>
+                </a-select>
               </a-form-item>
             </a-col>
           </div>
@@ -39,8 +34,8 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">新增</a-button>
-        <a-button @click="batchDelete">删除</a-button>
+        <!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
+<!--        <a-button @click="batchDelete">删除</a-button>-->
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -52,68 +47,32 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
-        <template slot="titleShow" slot-scope="text, record">
-          <template>
-            <a-badge status="processing" v-if="record.rackUp === 1"/>
-            <a-badge status="error" v-if="record.rackUp === 0"/>
-            <a-tooltip>
-              <template slot="title">
-                {{ record.title }}
-              </template>
-              {{ record.title.slice(0, 8) }} ...
-            </a-tooltip>
-          </template>
-        </template>
-        <template slot="contentShow" slot-scope="text, record">
-          <template>
-            <a-tooltip>
-              <template slot="title">
-                {{ record.remark }}
-              </template>
-              {{ record.remark.slice(0, 20) }} ...
-            </a-tooltip>
-          </template>
+        <template slot="amountShow" slot-scope="text, record">
+          <a-icon v-if="record.isIn == 1" type="caret-up" style="color: red;font-size: 15px"/>
+          <a-icon v-if="record.isIn == 2" type="caret-down" style="color: green;font-size: 15px"/>
+          {{ record.amount }}
         </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
+          <a-icon v-if="record.accountStatus == 0" type="caret-up" @click="edit(record, 1)" title="修 改"/>
+          <a-icon v-if="record.accountStatus == 1" type="caret-down" @click="edit(record, 0)" title="修 改"/>
         </template>
       </a-table>
     </div>
-    <space-add
-      v-if="spaceAdd.visiable"
-      @close="handlespaceAddClose"
-      @success="handlespaceAddSuccess"
-      :spaceAddVisiable="spaceAdd.visiable">
-    </space-add>
-    <space-edit
-      ref="spaceEdit"
-      @close="handlespaceEditClose"
-      @success="handlespaceEditSuccess"
-      :spaceEditVisiable="spaceEdit.visiable">
-    </space-edit>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import spaceAdd from './DeviceAdd.vue'
-import spaceEdit from './DeviceEdit.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'space',
-  components: {spaceAdd, spaceEdit, RangeDate},
+  name: 'Details',
+  components: {RangeDate},
   data () {
     return {
       advanced: false,
-      spaceAdd: {
-        visiable: false
-      },
-      spaceEdit: {
-        visiable: false
-      },
       queryParams: {},
       filteredInfo: null,
       sortedInfo: null,
@@ -129,7 +88,7 @@ export default {
         showSizeChanger: true,
         showTotal: (total, range) => `显示 ${range[0]} ~ ${range[1]} 条记录，共 ${total} 条记录`
       },
-      userList: []
+      consumableType: []
     }
   },
   computed: {
@@ -138,11 +97,11 @@ export default {
     }),
     columns () {
       return [{
-        title: '器材编号',
-        dataIndex: 'code'
+        title: '用户名称',
+        dataIndex: 'userName'
       }, {
-        title: '器材名称',
-        dataIndex: 'name',
+        title: '联系方式',
+        dataIndex: 'phone',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -151,74 +110,62 @@ export default {
           }
         }
       }, {
-        title: '型号',
-        dataIndex: 'model',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '品牌',
-        dataIndex: 'brand',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '押金',
-        dataIndex: 'depositPrice',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '价格/时',
-        dataIndex: 'unitPrice',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '器材图片',
-        dataIndex: 'typeImages',
+        title: '用户头像',
+        dataIndex: 'userImages',
         customRender: (text, record, index) => {
-          if (!record.typeImages) return <a-avatar shape="square" icon="user" />
+          if (!record.userImages) return <a-avatar shape="square" icon="user" />
           return <a-popover>
             <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.typeImages.split(',')[0] } />
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
             </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.typeImages.split(',')[0] } />
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
           </a-popover>
         }
       }, {
-        title: '状态',
-        dataIndex: 'status',
+        title: '操作类型',
+        dataIndex: 'isIn',
         customRender: (text, row, index) => {
           switch (text) {
             case '1':
-              return <a-tag color="blue">正常</a-tag>
+              return <a-tag color="blue">加分</a-tag>
             case '2':
-              return <a-tag color="red">租用中</a-tag>
-            case '3':
-              return <a-tag color="yellow">维保中</a-tag>
+              return <a-tag color="pink">扣分</a-tag>
             default:
               return '- -'
           }
         }
       }, {
-        title: '创建时间',
+        title: '信用积分',
+        dataIndex: 'score',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + ' 分'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '剩余积分',
+        dataIndex: 'afterScore',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + ' 分'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '备注',
+        dataIndex: 'content',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '操作时间',
         dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -227,10 +174,6 @@ export default {
             return '- -'
           }
         }
-      }, {
-        title: '操作',
-        dataIndex: 'operation',
-        scopedSlots: {customRender: 'operation'}
       }]
     }
   },
@@ -238,34 +181,17 @@ export default {
     this.fetch()
   },
   methods: {
+    edit (row, status) {
+      this.$post('/cos/student-info/accountStatusEdit', { userId: row.userId, status }).then((r) => {
+        this.$message.success('修改成功')
+        this.fetch()
+      })
+    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
     toggleAdvanced () {
       this.advanced = !this.advanced
-    },
-    add () {
-      this.spaceAdd.visiable = true
-    },
-    handlespaceAddClose () {
-      this.spaceAdd.visiable = false
-    },
-    handlespaceAddSuccess () {
-      this.spaceAdd.visiable = false
-      this.$message.success('新增器材成功')
-      this.search()
-    },
-    edit (record) {
-      this.$refs.spaceEdit.setFormValues(record)
-      this.spaceEdit.visiable = true
-    },
-    handlespaceEditClose () {
-      this.spaceEdit.visiable = false
-    },
-    handlespaceEditSuccess () {
-      this.spaceEdit.visiable = false
-      this.$message.success('修改器材成功')
-      this.search()
     },
     handleDeptChange (value) {
       this.queryParams.deptId = value || ''
@@ -282,7 +208,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/device-info/' + ids).then(() => {
+          that.$delete('/cos/credit-record-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -352,7 +278,10 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      this.$get('/cos/device-info/page', {
+      if (params.type === undefined) {
+        delete params.type
+      }
+      this.$get('/cos/credit-record-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

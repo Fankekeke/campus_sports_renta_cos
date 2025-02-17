@@ -19,14 +19,6 @@
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label='联系方式' v-bind="formItemLayout">
-            <a-input v-decorator="[
-            'phone',
-            { rules: [{ required: true, message: '请输入联系方式!' }] }
-            ]"/>
-          </a-form-item>
-        </a-col>
-        <a-col :span="12">
           <a-form-item label='员工性别' v-bind="formItemLayout">
             <a-select v-decorator="[
               'sex',
@@ -37,8 +29,70 @@
             </a-select>
           </a-form-item>
         </a-col>
+        <a-col :span="12">
+          <a-form-item label='出生日期' v-bind="formItemLayout">
+            <a-date-picker style="width: 100%" v-decorator="[
+            'birthday',
+            { rules: [{ required: true, message: '请输入出生日期!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='籍 贯' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'nativeAddress'
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='身份证号码' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'idCard'
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='学历' v-bind="formItemLayout">
+            <a-select v-decorator="[
+              'diploma'
+              ]">
+              <a-select-option value="1">高中</a-select-option>
+              <a-select-option value="2">专科</a-select-option>
+              <a-select-option value="3">本科</a-select-option>
+              <a-select-option value="4">硕士</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='学校名称' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'schoolName'
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='家庭住址' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'address'
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='邮 箱' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'mail'
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='联系方式' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'phone'
+            ]"/>
+          </a-form-item>
+        </a-col>
         <a-col :span="24">
-          <a-form-item label='员工照片' v-bind="formItemLayout">
+          <a-form-item label='照片' v-bind="formItemLayout">
             <a-upload
               name="avatar"
               action="http://127.0.0.1:9527/file/fileUpload/"
@@ -47,7 +101,7 @@
               @preview="handlePreview"
               @change="picHandleChange"
             >
-              <div v-if="fileList.length < 8">
+              <div v-if="fileList.length < 2">
                 <a-icon type="plus" />
                 <div class="ant-upload-text">
                   Upload
@@ -66,6 +120,8 @@
 
 <script>
 import {mapState} from 'vuex'
+import moment from 'moment'
+moment.locale('zh-cn')
 function getBase64 (file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -107,15 +163,23 @@ export default {
       fileList: [],
       previewVisible: false,
       previewImage: '',
-      checkedList: [],
-      indeterminate: true,
-      checkAll: false,
-      plainOptions: []
+      deptList: [],
+      positionList: []
     }
   },
   mounted () {
   },
   methods: {
+    selectDeptList () {
+      this.$get(`/cos/dept-info/list`).then((r) => {
+        this.deptList = r.data.data
+      })
+    },
+    selectPositionList () {
+      this.$get(`/cos/position-info/list`).then((r) => {
+        this.positionList = r.data.data
+      })
+    },
     handleCancel () {
       this.previewVisible = false
     },
@@ -155,14 +219,18 @@ export default {
     },
     setFormValues ({...staff}) {
       this.rowId = staff.id
-      let fields = ['name', 'phone', 'sex', 'responsible']
+      let fields = ['name', 'sex', 'birthday', 'nativeAddress', 'idCard', 'diploma', 'schoolName', 'address', 'mail', 'phone']
       let obj = {}
       Object.keys(staff).forEach((key) => {
         if (key === 'sex') {
           staff[key] = staff[key].toString()
         }
-        if (key === 'responsible') {
-          this.responsibleInit(staff[key].toString())
+        if (key === 'birthday' && staff[key] != null) {
+          staff[key] = moment(staff[key])
+        }
+        if (key === 'images') {
+          this.fileList = []
+          this.imagesInit(staff['images'])
         }
         if (fields.indexOf(key) !== -1) {
           this.form.getFieldDecorator(key)
@@ -190,6 +258,9 @@ export default {
         }
       })
       this.form.validateFields((err, values) => {
+        if (values.birthday) {
+          values.birthday = moment(values.birthday).format('YYYY-MM-DD')
+        }
         values.id = this.rowId
         values.images = images.length > 0 ? images.join(',') : null
         if (!err) {

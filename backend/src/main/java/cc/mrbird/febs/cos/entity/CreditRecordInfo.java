@@ -2,6 +2,8 @@ package cc.mrbird.febs.cos.entity;
 
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -47,6 +49,9 @@ public class CreditRecordInfo implements Serializable {
      * 创建时间
      */
     private String createDate;
+
+    @TableField(exist = false)
+    private String userName;
 
 
 }

@@ -66,6 +66,7 @@ public class DeviceTypeInfoController {
      */
     @PostMapping
     public R save(DeviceTypeInfo deviceTypeInfo) {
+        deviceTypeInfo.setCode("DT-" + System.currentTimeMillis());
         deviceTypeInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         return R.ok(deviceTypeInfoService.save(deviceTypeInfo));
     }

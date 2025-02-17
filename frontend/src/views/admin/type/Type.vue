@@ -129,6 +129,9 @@ export default {
     }),
     columns () {
       return [{
+        title: '器械编号',
+        dataIndex: 'code'
+      },{
         title: '类型名称',
         dataIndex: 'name'
       }, {
@@ -142,14 +145,16 @@ export default {
           }
         }
       }, {
-        title: '上级类型',
-        dataIndex: 'pname',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '无'
-          }
+        title: '类型图片',
+        dataIndex: 'images',
+        customRender: (text, record, index) => {
+          if (!record.images) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+          </a-popover>
         }
       }, {
         title: '创建时间',
@@ -186,7 +191,7 @@ export default {
     },
     handleConsumableAddSuccess () {
       this.consumableAdd.visiable = false
-      this.$message.success('新增物品类型成功')
+      this.$message.success('新增器材类型成功')
       this.search()
     },
     edit (record) {
@@ -198,7 +203,7 @@ export default {
     },
     handleConsumableEditSuccess () {
       this.consumableEdit.visiable = false
-      this.$message.success('修改物品类型成功')
+      this.$message.success('修改器材类型成功')
       this.search()
     },
     handleDeptChange (value) {
@@ -216,7 +221,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/consumable-type/' + ids).then(() => {
+          that.$delete('/cos/device-type-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -286,7 +291,7 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      this.$get('/cos/consumable-type/page', {
+      this.$get('/cos/device-type-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

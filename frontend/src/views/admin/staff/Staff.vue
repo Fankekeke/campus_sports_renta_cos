@@ -46,8 +46,6 @@
                @change="handleTableChange">
         <template slot="titleShow" slot-scope="text, record">
           <template>
-            <a-badge status="processing" v-if="record.rackUp === 1"/>
-            <a-badge status="error" v-if="record.rackUp === 0"/>
             <a-tooltip>
               <template slot="title">
                 {{ record.title }}
@@ -57,8 +55,6 @@
           </template>
         </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon v-if="record.status == 2" type="caret-up" @click="editStatus(record, 1)" title="修 改"/>
-          <a-icon v-if="record.status == 1" type="caret-down" @click="editStatus(record, 2)" title="修 改"/>
           <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
@@ -113,7 +109,8 @@ export default {
         showSizeChanger: true,
         showTotal: (total, range) => `显示 ${range[0]} ~ ${range[1]} 条记录，共 ${total} 条记录`
       },
-      userList: []
+      deptList: [],
+      positionList: []
     }
   },
   computed: {
@@ -128,17 +125,20 @@ export default {
         title: '员工编号',
         dataIndex: 'code'
       }, {
-        title: '联系方式',
-        dataIndex: 'phone',
+        title: '性别',
+        dataIndex: 'sex',
         customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
+          switch (text) {
+            case '1':
+              return <a-tag>男</a-tag>
+            case '2':
+              return <a-tag>女</a-tag>
+            default:
+              return '- -'
           }
         }
       }, {
-        title: '员工照片',
+        title: '照片',
         dataIndex: 'images',
         customRender: (text, record, index) => {
           if (!record.images) return <a-avatar shape="square" icon="user" />
@@ -150,29 +150,53 @@ export default {
           </a-popover>
         }
       }, {
-        title: '性别',
-        dataIndex: 'sex',
+        title: '出生日期',
+        dataIndex: 'birthday',
         customRender: (text, row, index) => {
-          switch (text) {
-            case 1:
-              return <a-tag>男</a-tag>
-            case 2:
-              return <a-tag>女</a-tag>
-            default:
-              return '- -'
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
           }
         }
       }, {
-        title: '状态',
-        dataIndex: 'status',
+        title: '籍贯',
+        dataIndex: 'nativeAddress',
         customRender: (text, row, index) => {
-          switch (text) {
-            case 1:
-              return <a-tag color="green">正常</a-tag>
-            case 2:
-              return <a-tag color="red">异常</a-tag>
-            default:
-              return '- -'
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '身份证号码',
+        dataIndex: 'idCard',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '联系方式',
+        dataIndex: 'phone',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '联系地址',
+        dataIndex: 'address',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
           }
         }
       }, {
@@ -196,6 +220,16 @@ export default {
     this.fetch()
   },
   methods: {
+    selectDeptList () {
+      this.$get(`/cos/dept-info/list`).then((r) => {
+        this.deptList = r.data.data
+      })
+    },
+    selectPositionList () {
+      this.$get(`/cos/position-info/list`).then((r) => {
+        this.positionList = r.data.data
+      })
+    },
     editStatus (row, status) {
       this.$post('/cos/staff-info/account/status', { staffId: row.id, status }).then((r) => {
         this.$message.success('修改成功')
@@ -315,6 +349,12 @@ export default {
         // 如果分页信息为空，则设置为默认值
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
+      }
+      if (params.deptId === undefined) {
+        delete params.deptId
+      }
+      if (params.positionId === undefined) {
+        delete params.positionId
       }
       this.$get('/cos/staff-info/page', {
         ...params

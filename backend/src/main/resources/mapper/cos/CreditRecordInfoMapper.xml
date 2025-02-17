@@ -5,19 +5,25 @@
     <!-- 分页获取信用积分记录 -->
     <select id="queryCreditPage" resultType="java.util.LinkedHashMap">
         select cri.id,
-               cri.user_id,
-               cri.`type`,
-               cri.score,
-               cri.after_score,
-               cri.content,
-               cri.create_date,
-               ui.name   as userName,
-               ui.images as userImages,
-               ui.phone
+        cri.user_id,
+        cri.`type`,
+        cri.score,
+        cri.after_score,
+        cri.content,
+        cri.create_date,
+        ui.name as userName,
+        ui.images as userImages,
+        ui.phone
         from credit_record_info cri
-                 left join user_info ui on
-            (ui.id = cri.user_id)
+        left join user_info ui on
+        (ui.id = cri.user_id)
         where 1 = 1
+        <if test="creditRecordInfo.userName != null and creditRecordInfo.userName != ''">
+            AND ui.name LIKE CONCAT('%',#{creditRecordInfo.userName},'%')
+        </if>
+        <if test="creditRecordInfo.type != null and creditRecordInfo.type != ''">
+            AND cri.`type` = #{creditRecordInfo.type}
+        </if>
         order by cri.create_date desc
     </select>
 </mapper>

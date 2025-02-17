@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model="show" title="修改物品类型" @cancel="onClose" :width="800">
+  <a-modal v-model="show" title="修改器材类型" @cancel="onClose" :width="600">
     <template slot="footer">
       <a-button key="back" @click="onClose">
         取消
@@ -10,22 +10,12 @@
     </template>
     <a-form :form="form" layout="vertical">
       <a-row :gutter="20">
-        <a-col :span="12">
+        <a-col :span="24">
           <a-form-item label='类型名称' v-bind="formItemLayout">
             <a-input v-decorator="[
             'name',
             { rules: [{ required: true, message: '请输入名称!' }] }
             ]"/>
-          </a-form-item>
-        </a-col>
-        <a-col :span="12">
-          <a-form-item label='上级类型' v-bind="formItemLayout">
-            <a-select v-decorator="[
-              'pid',
-              { rules: [{ required: true, message: '请输入名称!' }] }
-              ]" style="width: 100%">
-              <a-select-option v-for="(item, index) in parentTypeList" :value="item.id" :key="index">{{ item.name }}</a-select-option>
-            </a-select>
           </a-form-item>
         </a-col>
         <a-col :span="24">
@@ -36,6 +26,28 @@
             ]"/>
           </a-form-item>
         </a-col>
+        <a-col :span="24">
+          <a-form-item label='图册' v-bind="formItemLayout">
+            <a-upload
+              name="avatar"
+              action="http://127.0.0.1:9527/file/fileUpload/"
+              list-type="picture-card"
+              :file-list="fileList"
+              @preview="handlePreview"
+              @change="picHandleChange"
+            >
+              <div v-if="fileList.length < 8">
+                <a-icon type="plus" />
+                <div class="ant-upload-text">
+                  Upload
+                </div>
+              </div>
+            </a-upload>
+            <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel">
+              <img alt="example" style="width: 100%" :src="previewImage" />
+            </a-modal>
+          </a-form-item>
+        </a-col>
       </a-row>
     </a-form>
   </a-modal>
@@ -43,6 +55,14 @@
 
 <script>
 import {mapState} from 'vuex'
+function getBase64 (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = error => reject(error)
+  })
+}
 const formItemLayout = {
   labelCol: { span: 24 },
   wrapperCol: { span: 24 }
@@ -72,13 +92,28 @@ export default {
       formItemLayout,
       form: this.$form.createForm(this),
       loading: false,
-      parentTypeList: []
+      parentTypeList: [],
+      fileList: [],
+      previewVisible: false,
+      previewImage: ''
     }
   },
   mounted () {
-    this.selectParentTypeList()
   },
   methods: {
+    handleCancel () {
+      this.previewVisible = false
+    },
+    async handlePreview (file) {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj)
+      }
+      this.previewImage = file.url || file.preview
+      this.previewVisible = true
+    },
+    picHandleChange ({ fileList }) {
+      this.fileList = fileList
+    },
     selectParentTypeList () {
       this.$get('/cos/consumable-type/list').then((r) => {
         this.parentTypeList = r.data.data
@@ -89,6 +124,10 @@ export default {
       let fields = ['name', 'content']
       let obj = {}
       Object.keys(consumable).forEach((key) => {
+        if (key === 'images') {
+          this.fileList = []
+          this.imagesInit(consumable['images'])
+        }
         if (fields.indexOf(key) !== -1) {
           this.form.getFieldDecorator(key)
           obj[key] = consumable[key]
@@ -105,11 +144,21 @@ export default {
       this.$emit('close')
     },
     handleSubmit () {
+      // 获取图片List
+      let images = []
+      this.fileList.forEach(image => {
+        if (image.response !== undefined) {
+          images.push(image.response)
+        } else {
+          images.push(image.name)
+        }
+      })
       this.form.validateFields((err, values) => {
         values.id = this.rowId
+        values.images = images.length > 0 ? images.join(',') : null
         if (!err) {
           this.loading = true
-          this.$put('/cos/consumable-type', {
+          this.$put('/cos/device-type-info', {
             ...values
           }).then((r) => {
             this.reset()

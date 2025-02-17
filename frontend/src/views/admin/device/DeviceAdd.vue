@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model="show" title="新增车位" @cancel="onClose" :width="800">
+  <a-modal v-model="show" title="新增器材" @cancel="onClose" :width="800">
     <template slot="footer">
       <a-button key="back" @click="onClose">
         取消
@@ -11,10 +11,10 @@
     <a-form :form="form" layout="vertical">
       <a-row :gutter="20">
         <a-col :span="12">
-          <a-form-item label='车位名称' v-bind="formItemLayout">
+          <a-form-item label='器材名称' v-bind="formItemLayout">
             <a-input v-decorator="[
             'name',
-            { spaces: [{ required: true, message: '请输入车位名称!' }] }
+            { spaces: [{ required: true, message: '请输入器材名称!' }] }
             ]"/>
           </a-form-item>
         </a-col>
@@ -27,10 +27,10 @@
           </a-form-item>
         </a-col>
         <a-col :span="24">
-          <a-form-item label='车位地点' v-bind="formItemLayout">
+          <a-form-item label='器材地点' v-bind="formItemLayout">
             <a-textarea :rows="6" v-decorator="[
             'space',
-             { spaces: [{ required: true, message: '请输入车位地点!' }] }
+             { spaces: [{ required: true, message: '请输入器材地点!' }] }
             ]"/>
           </a-form-item>
         </a-col>
@@ -117,6 +117,15 @@ export default {
     },
     picHandleChange ({ fileList }) {
       this.fileList = fileList
+    },
+    imagesInit (images) {
+      if (images !== null && images !== '') {
+        let imageList = []
+        images.split(',').forEach((image, index) => {
+          imageList.push({uid: index, name: image, status: 'done', url: 'http://127.0.0.1:9527/imagesWeb/' + image})
+        })
+        this.fileList = imageList
+      }
     },
     reset () {
       this.loading = false

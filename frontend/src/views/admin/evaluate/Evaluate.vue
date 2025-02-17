@@ -7,26 +7,26 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="器材型号"
+                label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.model"/>
+                <a-input v-model="queryParams.userName"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="器材名称"
+                label="订单编号"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.name"/>
+                <a-input v-model="queryParams.orderCode"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="器材类型"
+                label="商家名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.typeName"/>
+                <a-input v-model="queryParams.merchantName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -39,7 +39,6 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">新增</a-button>
         <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
@@ -52,67 +51,51 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
-        <template slot="titleShow" slot-scope="text, record">
-          <template>
-            <a-badge status="processing" v-if="record.rackUp === 1"/>
-            <a-badge status="error" v-if="record.rackUp === 0"/>
-            <a-tooltip>
-              <template slot="title">
-                {{ record.title }}
-              </template>
-              {{ record.title.slice(0, 8) }} ...
-            </a-tooltip>
-          </template>
-        </template>
-        <template slot="contentShow" slot-scope="text, record">
+        <template slot="evaluateShow" slot-scope="text, record">
           <template>
             <a-tooltip>
               <template slot="title">
-                {{ record.remark }}
+                {{ record.content }}
               </template>
-              {{ record.remark.slice(0, 20) }} ...
+              {{ record.content.slice(0, 10) }} ...
             </a-tooltip>
           </template>
         </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
+          <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情"></a-icon>
         </template>
       </a-table>
+      <order-view
+        @close="handleorderViewClose"
+        :orderShow="orderView.visiable"
+        :orderData="orderView.data">
+      </order-view>
     </div>
-    <space-add
-      v-if="spaceAdd.visiable"
-      @close="handlespaceAddClose"
-      @success="handlespaceAddSuccess"
-      :spaceAddVisiable="spaceAdd.visiable">
-    </space-add>
-    <space-edit
-      ref="spaceEdit"
-      @close="handlespaceEditClose"
-      @success="handlespaceEditSuccess"
-      :spaceEditVisiable="spaceEdit.visiable">
-    </space-edit>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import spaceAdd from './DeviceAdd.vue'
-import spaceEdit from './DeviceEdit.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
+import OrderView from './OrderView'
 moment.locale('zh-cn')
 
 export default {
-  name: 'space',
-  components: {spaceAdd, spaceEdit, RangeDate},
+  name: 'evaluate',
+  components: {RangeDate, OrderView},
   data () {
     return {
       advanced: false,
-      spaceAdd: {
+      evaluateAdd: {
         visiable: false
       },
-      spaceEdit: {
+      evaluateEdit: {
         visiable: false
+      },
+      orderView: {
+        visiable: false,
+        data: null
       },
       queryParams: {},
       filteredInfo: null,
@@ -138,11 +121,9 @@ export default {
     }),
     columns () {
       return [{
-        title: '器材编号',
-        dataIndex: 'code'
-      }, {
-        title: '器材名称',
-        dataIndex: 'name',
+        title: '评价用户',
+        ellipsis: true,
+        dataIndex: 'userName',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -151,74 +132,89 @@ export default {
           }
         }
       }, {
-        title: '型号',
-        dataIndex: 'model',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '品牌',
-        dataIndex: 'brand',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '押金',
-        dataIndex: 'depositPrice',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '价格/时',
-        dataIndex: 'unitPrice',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '器材图片',
-        dataIndex: 'typeImages',
+        title: '用户头像',
+        dataIndex: 'userImages',
         customRender: (text, record, index) => {
-          if (!record.typeImages) return <a-avatar shape="square" icon="user" />
+          if (!record.userImages) return <a-avatar shape="square" icon="user" />
           return <a-popover>
             <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.typeImages.split(',')[0] } />
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
             </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.typeImages.split(',')[0] } />
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
           </a-popover>
         }
       }, {
-        title: '状态',
-        dataIndex: 'status',
+        title: '订单编号',
+        ellipsis: true,
+        dataIndex: 'orderCode',
         customRender: (text, row, index) => {
-          switch (text) {
-            case '1':
-              return <a-tag color="blue">正常</a-tag>
-            case '2':
-              return <a-tag color="red">租用中</a-tag>
-            case '3':
-              return <a-tag color="yellow">维保中</a-tag>
-            default:
-              return '- -'
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
           }
         }
       }, {
-        title: '创建时间',
+        title: '折后价格',
+        dataIndex: 'afterOrderPrice',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + '元'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '评价得分',
+        dataIndex: 'score',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + '分'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '评价内容',
+        ellipsis: true,
+        dataIndex: 'content',
+        scopedSlots: {customRender: 'evaluateShow'}
+      }, {
+        title: '评价图片',
+        dataIndex: 'images',
+        customRender: (text, record, index) => {
+          if (!record.images) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+          </a-popover>
+        }
+      }, {
+        title: '所属商家',
+        ellipsis: true,
+        dataIndex: 'merchantName',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '获得积分',
+        dataIndex: 'integral',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '评价时间',
+        ellipsis: true,
         dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -238,6 +234,13 @@ export default {
     this.fetch()
   },
   methods: {
+    orderViewOpen (row) {
+      this.orderView.data = row
+      this.orderView.visiable = true
+    },
+    handleorderViewClose () {
+      this.orderView.visiable = false
+    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -245,26 +248,26 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.spaceAdd.visiable = true
+      this.evaluateAdd.visiable = true
     },
-    handlespaceAddClose () {
-      this.spaceAdd.visiable = false
+    handleevaluateAddClose () {
+      this.evaluateAdd.visiable = false
     },
-    handlespaceAddSuccess () {
-      this.spaceAdd.visiable = false
-      this.$message.success('新增器材成功')
+    handleevaluateAddSuccess () {
+      this.evaluateAdd.visiable = false
+      this.$message.success('新增评价成功')
       this.search()
     },
     edit (record) {
-      this.$refs.spaceEdit.setFormValues(record)
-      this.spaceEdit.visiable = true
+      this.$refs.evaluateEdit.setFormValues(record)
+      this.evaluateEdit.visiable = true
     },
-    handlespaceEditClose () {
-      this.spaceEdit.visiable = false
+    handleevaluateEditClose () {
+      this.evaluateEdit.visiable = false
     },
-    handlespaceEditSuccess () {
-      this.spaceEdit.visiable = false
-      this.$message.success('修改器材成功')
+    handleevaluateEditSuccess () {
+      this.evaluateEdit.visiable = false
+      this.$message.success('修改评价成功')
       this.search()
     },
     handleDeptChange (value) {
@@ -282,7 +285,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/device-info/' + ids).then(() => {
+          that.$delete('/cos/evaluate-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -352,7 +355,10 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      this.$get('/cos/device-info/page', {
+      if (params.type === undefined) {
+        delete params.type
+      }
+      this.$get('/cos/evaluate-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data
