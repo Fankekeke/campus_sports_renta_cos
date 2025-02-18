@@ -23,10 +23,10 @@
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="商家名称"
+                label="器材名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.merchantName"/>
+                <a-input v-model="queryParams.deviceName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -155,8 +155,8 @@ export default {
           }
         }
       }, {
-        title: '折后价格',
-        dataIndex: 'afterOrderPrice',
+        title: '支付价格',
+        dataIndex: 'totalPrice',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text + '元'
@@ -192,9 +192,9 @@ export default {
           </a-popover>
         }
       }, {
-        title: '所属商家',
+        title: '器材名称',
         ellipsis: true,
-        dataIndex: 'merchantName',
+        dataIndex: 'name',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -203,8 +203,8 @@ export default {
           }
         }
       }, {
-        title: '获得积分',
-        dataIndex: 'integral',
+        title: '器材类型',
+        dataIndex: 'typeName',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text

@@ -11,19 +11,23 @@
     <a-form :form="form" layout="vertical">
       <a-row :gutter="20">
         <a-col :span="12">
-          <a-form-item label='器材名称' v-bind="formItemLayout">
-            <a-input v-decorator="[
-            'name',
-            { spaces: [{ required: true, message: '请输入器材名称!' }] }
-            ]"/>
+          <a-form-item label='选择器材' v-bind="formItemLayout">
+            <a-select v-decorator="[
+              'deviceId',
+              { rules: [{ required: true, message: '请选择器材!' }] }
+              ]">
+              <a-select-option :value="item.id" v-for="(item, index) in deviceList" :key="index">{{ item.name }}</a-select-option>
+            </a-select>
           </a-form-item>
         </a-col>
         <a-col :span="12">
           <a-form-item label='维修人员' v-bind="formItemLayout">
-            <a-input v-decorator="[
-            'name',
-            { spaces: [{ required: true, message: '请输入器材名称!' }] }
-            ]"/>
+            <a-select v-decorator="[
+              'staffId',
+              { rules: [{ required: true, message: '请选择维修人员!' }] }
+              ]">
+              <a-select-option :value="item.id" v-for="(item, index) in staffList" :key="index">{{ item.name }}</a-select-option>
+            </a-select>
           </a-form-item>
         </a-col>
         <a-col :span="12">
@@ -111,6 +115,10 @@ export default {
       previewImage: ''
     }
   },
+  mounted () {
+    this.selectDeviceList()
+    this.selectStaffList()
+  },
   methods: {
     selectDeviceList () {
       this.$get(`/cos/device-info/list`).then((r) => {
@@ -162,7 +170,7 @@ export default {
         }
         if (!err) {
           this.loading = true
-          this.$post('/cos/space-info', {
+          this.$post('/cos/repair-record-info', {
             ...values
           }).then((r) => {
             this.reset()

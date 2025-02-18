@@ -64,7 +64,6 @@ public class EvaluateInfoController {
      */
     @PostMapping
     public R save(EvaluateInfo evaluateInfo) {
-
         evaluateInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         return R.ok(evaluateInfoService.save(evaluateInfo));
     }
