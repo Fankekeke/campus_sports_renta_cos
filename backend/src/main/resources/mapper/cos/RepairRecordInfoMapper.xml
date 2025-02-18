@@ -5,28 +5,37 @@
     <!-- 分页获取器械维修 -->
     <select id="queryRepairPage" resultType="java.util.LinkedHashMap">
         select rei.id,
-               rei.code,
-               rei.title,
-               rei.device_id,
-               rei.content,
-               rei.repair_start_date,
-               rei.repair_end_date,
-               rei.status,
-               rei.staff_id,
-               rei.create_date,
-               di.name,
-               di.content,
-               di.model,
-               di.brand,
-               si.name   as staffName,
-               si.images as staffImages,
-               si.phone  as staffPhone
+        rei.code,
+        rei.title,
+        rei.device_id,
+        rei.content,
+        rei.repair_start_date,
+        rei.repair_end_date,
+        rei.status,
+        rei.staff_id,
+        rei.create_date,
+        di.name,
+        di.content,
+        di.model,
+        di.brand,
+        si.name as staffName,
+        si.images as staffImages,
+        si.phone as staffPhone
         from repair_record_info rei
-                 left join device_info di on
-            (di.id = rei.device_id)
-                 left join staff_info si on
-            (si.id = rei.staff_id)
+        left join device_info di on
+        (di.id = rei.device_id)
+        left join staff_info si on
+        (si.id = rei.staff_id)
         where 1 = 1
+        <if test="repairRecordInfo.code != null and repairRecordInfo.code != ''">
+            AND rei.code LIKE CONCAT('%',#{repairRecordInfo.code},'%')
+        </if>
+        <if test="repairRecordInfo.title != null and repairRecordInfo.title != ''">
+            AND rei.title LIKE CONCAT('%',#{repairRecordInfo.title},'%')
+        </if>
+        <if test="repairRecordInfo.staffName != null and repairRecordInfo.staffName != ''">
+            AND si.name LIKE CONCAT('%',#{repairRecordInfo.staffName},'%')
+        </if>
         order by rei.create_date desc
     </select>
 

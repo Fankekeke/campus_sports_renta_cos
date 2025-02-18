@@ -85,7 +85,7 @@
 <!--      </a-col>-->
     </a-row>
     <a-row style="margin-top: 15px">
-      <a-col :span="12">
+      <a-col :span="24">
         <a-card hoverable :loading="loading" :bordered="false" title="公告信息" style="margin-top: 15px">
           <div style="padding: 0 22px">
             <a-list item-layout="vertical" :pagination="pagination" :data-source="bulletinList">
@@ -277,7 +277,7 @@ export default {
   },
   methods: {
     selectHomeData () {
-      this.$get('/cos/park-order-info/home/data', {roleId: this.user.roleId, userId: this.user.userId}).then((r) => {
+      this.$get('/cos/rent-order-info/homeData').then((r) => {
         let titleData = { staffNum: r.data.staffNum, totalRevenue: r.data.totalRevenue, totalOrderNum: r.data.totalOrderNum, roomNum: r.data.roomNum }
         this.$emit('setTitle', titleData)
         this.titleData.incomeMonth = r.data.incomeMonth

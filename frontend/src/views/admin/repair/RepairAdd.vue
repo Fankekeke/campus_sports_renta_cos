@@ -1,0 +1,182 @@
+<template>
+  <a-modal v-model="show" title="新增器材维修" @cancel="onClose" :width="800">
+    <template slot="footer">
+      <a-button key="back" @click="onClose">
+        取消
+      </a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="handleSubmit">
+        提交
+      </a-button>
+    </template>
+    <a-form :form="form" layout="vertical">
+      <a-row :gutter="20">
+        <a-col :span="12">
+          <a-form-item label='器材名称' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'name',
+            { spaces: [{ required: true, message: '请输入器材名称!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='维修人员' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'name',
+            { spaces: [{ required: true, message: '请输入器材名称!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='维修主题' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'title',
+            { spaces: [{ required: true, message: '请输入维修主题!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='开始维修时间' v-bind="formItemLayout">
+            <a-date-picker show-time
+                           format="YYYY-MM-DD HH:mm:ss" style="width: 100%" v-decorator="[
+            'repairStartDate',
+            { rules: [{ required: true, message: '请输入开始维修时间!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='维修结束时间' v-bind="formItemLayout">
+            <a-date-picker show-time
+                           format="YYYY-MM-DD HH:mm:ss" style="width: 100%" v-decorator="[
+            'repairEndDate',
+            { rules: [{ required: true, message: '请输入维修结束时间!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="24">
+          <a-form-item label='维修内容' v-bind="formItemLayout">
+            <a-textarea :rows="6" v-decorator="[
+            'content',
+             { spaces: [{ required: true, message: '请输入维修内容!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+      </a-row>
+    </a-form>
+  </a-modal>
+</template>
+
+<script>
+import {mapState} from 'vuex'
+import moment from 'moment'
+function getBase64 (file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = error => reject(error)
+  })
+}
+const formItemLayout = {
+  labelCol: { span: 24 },
+  wrapperCol: { span: 24 }
+}
+export default {
+  name: 'spaceAdd',
+  props: {
+    spaceAddVisiable: {
+      default: false
+    }
+  },
+  computed: {
+    ...mapState({
+      currentUser: state => state.account.user
+    }),
+    show: {
+      get: function () {
+        return this.spaceAddVisiable
+      },
+      set: function () {
+      }
+    }
+  },
+  data () {
+    return {
+      formItemLayout,
+      form: this.$form.createForm(this),
+      loading: false,
+      fileList: [],
+      deviceList: [],
+      staffList: [],
+      previewVisible: false,
+      previewImage: ''
+    }
+  },
+  methods: {
+    selectDeviceList () {
+      this.$get(`/cos/device-info/list`).then((r) => {
+        this.deviceList = r.data.data
+      })
+    },
+    selectStaffList () {
+      this.$get(`/cos/staff-info/list`).then((r) => {
+        this.staffList = r.data.data
+      })
+    },
+    handleCancel () {
+      this.previewVisible = false
+    },
+    async handlePreview (file) {
+      if (!file.url && !file.preview) {
+        file.preview = await getBase64(file.originFileObj)
+      }
+      this.previewImage = file.url || file.preview
+      this.previewVisible = true
+    },
+    picHandleChange ({ fileList }) {
+      this.fileList = fileList
+    },
+    imagesInit (images) {
+      if (images !== null && images !== '') {
+        let imageList = []
+        images.split(',').forEach((image, index) => {
+          imageList.push({uid: index, name: image, status: 'done', url: 'http://127.0.0.1:9527/imagesWeb/' + image})
+        })
+        this.fileList = imageList
+      }
+    },
+    reset () {
+      this.loading = false
+      this.form.resetFields()
+    },
+    onClose () {
+      this.reset()
+      this.$emit('close')
+    },
+    handleSubmit () {
+      this.form.validateFields((err, values) => {
+        if (values.repairStartDate) {
+          values.repairStartDate = moment(values.repairStartDate).format('YYYY-MM-DD HH:mm:ss')
+        }
+        if (values.repairEndDate) {
+          values.repairEndDate = moment(values.repairEndDate).format('YYYY-MM-DD HH:mm:ss')
+        }
+        if (!err) {
+          this.loading = true
+          this.$post('/cos/space-info', {
+            ...values
+          }).then((r) => {
+            this.reset()
+            this.$emit('success')
+          }).catch(() => {
+            this.loading = false
+          })
+        }
+      })
+    }
+  }
+}
+</script>
+
+<style scoped>
+
+</style>

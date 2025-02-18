@@ -78,7 +78,7 @@
     <select id="selectOrderAmountDays" resultType="java.util.LinkedHashMap">
         SELECT
         DATE_FORMAT( spo.days, '%m-%d' ) AS days,
-        IFNULL(SUM(oi.totalPrice), 0) AS price
+        IFNULL(SUM(oi.total_price), 0) AS price
         FROM
         (
         SELECT
