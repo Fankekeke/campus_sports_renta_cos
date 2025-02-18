@@ -39,6 +39,17 @@ public class PurchaseDeviceInfoController {
     }
 
     /**
+     * 获取器材采购记录详情
+     *
+     * @param code 采购单编号
+     * @return 结果
+     */
+    @GetMapping("/queryPurchaseDetail")
+    public R queryPurchaseDetail(@RequestParam("code") String code) {
+        return R.ok(purchaseDeviceInfoService.queryPurchaseDetail(code));
+    }
+
+    /**
      * 器材采购记录详情
      *
      * @param id 器械ID

@@ -7,18 +7,10 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="车位名称"
+                label="订单编号"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.spaceName"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="车牌号码"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.vehicleNumber"/>
+                <a-input v-model="queryParams.code"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
@@ -27,6 +19,22 @@
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
                 <a-input v-model="queryParams.userName"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="器械名称"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.name"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="类型名称"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.typeName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -53,7 +61,7 @@
                :scroll="{ x: 900 }"
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="orderOverViewOpen(record)" title="订单结算" v-if="record.endDate == null"></a-icon>
+          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="orderOverViewOpen(record)" title="订单完成" v-if="record.status == 2"></a-icon>
           <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status == 1"></a-icon>
           <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
@@ -195,8 +203,8 @@ export default {
           }
         }
       }, {
-        title: '总时长（分钟）',
-        dataIndex: 'totalTime',
+        title: '总时长（小时）',
+        dataIndex: 'rentHour',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -215,14 +223,18 @@ export default {
           }
         }
       }, {
-        title: '缴费状态',
+        title: '状态',
         dataIndex: 'status',
         customRender: (text, row, index) => {
           switch (text) {
             case '0':
               return <a-tag color="red">未缴费</a-tag>
             case '1':
-              return <a-tag color="green">已缴费</a-tag>
+              return <a-tag color="green">已支付</a-tag>
+            case '2':
+              return <a-tag color="green">归还中</a-tag>
+            case '3':
+              return <a-tag color="green">已完成</a-tag>
             default:
               return '- -'
           }

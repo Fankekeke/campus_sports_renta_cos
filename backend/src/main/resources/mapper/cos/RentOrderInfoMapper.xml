@@ -5,35 +5,47 @@
     <!-- 分页获取租借订单 -->
     <select id="queryRentOrderPage" resultType="java.util.LinkedHashMap">
         select roi.id,
-               roi.code,
-               roi.user_id,
-               roi.device_id,
-               roi.start_date,
-               roi.end_date,
-               roi.rent_hour,
-               roi.unit_price,
-               roi.deposit_price,
-               roi.total_price,
-               roi.status,
-               roi.return_date,
-               roi.create_date,
-               ui.name    as userName,
-               ui.images  as userImages,
-               ui.phone,
-               di.name,
-               di.content,
-               di.model,
-               di.brand,
-               dti.name   as typeName,
-               dti.images as typeImages
+        roi.code,
+        roi.user_id,
+        roi.device_id,
+        roi.start_date,
+        roi.end_date,
+        roi.rent_hour,
+        roi.unit_price,
+        roi.deposit_price,
+        roi.total_price,
+        roi.status,
+        roi.return_date,
+        roi.create_date,
+        ui.name as userName,
+        ui.images as userImages,
+        ui.phone,
+        di.name,
+        di.content,
+        di.model,
+        di.brand,
+        dti.name as typeName,
+        dti.images as typeImages
         from rent_order_info roi
-                 left join user_info ui on
-            (ui.id = roi.user_id)
-                 left join device_info di on
-            (di.id = roi.device_id)
-                 left join device_type_info dti on
-            (dti.id = di.type_id)
+        left join user_info ui on
+        (ui.id = roi.user_id)
+        left join device_info di on
+        (di.id = roi.device_id)
+        left join device_type_info dti on
+        (dti.id = di.type_id)
         where 1 = 1
+        <if test="rentOrderInfo.code != null and rentOrderInfo.code != ''">
+            AND roi.code LIKE CONCAT('%',#{rentOrderInfo.code},'%')
+        </if>
+        <if test="rentOrderInfo.userName != null and rentOrderInfo.userName != ''">
+            AND ui.name LIKE CONCAT('%',#{rentOrderInfo.userName},'%')
+        </if>
+        <if test="rentOrderInfo.name != null and rentOrderInfo.name != ''">
+            AND di.name LIKE CONCAT('%',#{rentOrderInfo.name},'%')
+        </if>
+        <if test="rentOrderInfo.typeName != null and rentOrderInfo.typeName != ''">
+            AND dti.name LIKE CONCAT('%',#{rentOrderInfo.typeName},'%')
+        </if>
         order by roi.create_date desc
     </select>
 

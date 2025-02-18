@@ -64,6 +64,13 @@
             </a-tooltip>
           </template>
         </template>
+        <template slot="numShow" slot-scope="text, record">
+          <template>
+            <a-badge v-if="record.outFlag == 0" status="processing"/>
+            <a-badge v-if="record.outFlag == 1" status="success"/>
+            {{ record.code }}
+          </template>
+        </template>
         <template slot="contentShow" slot-scope="text, record">
           <template>
             <a-tooltip>
@@ -139,7 +146,7 @@ export default {
     columns () {
       return [{
         title: '器材编号',
-        dataIndex: 'code'
+        scopedSlots: {customRender: 'numShow'}
       }, {
         title: '器材名称',
         dataIndex: 'name',
