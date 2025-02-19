@@ -46,6 +46,9 @@
         <if test="rentOrderInfo.typeName != null and rentOrderInfo.typeName != ''">
             AND dti.name LIKE CONCAT('%',#{rentOrderInfo.typeName},'%')
         </if>
+        <if test="rentOrderInfo.userId != null and rentOrderInfo.userId != ''">
+            AND ui.`user_id` = #{rentOrderInfo.userId}
+        </if>
         order by roi.create_date desc
     </select>
 

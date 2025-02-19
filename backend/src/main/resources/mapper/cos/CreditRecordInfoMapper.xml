@@ -24,6 +24,9 @@
         <if test="creditRecordInfo.type != null and creditRecordInfo.type != ''">
             AND cri.`type` = #{creditRecordInfo.type}
         </if>
+        <if test="creditRecordInfo.userId != null and creditRecordInfo.userId != ''">
+            AND ui.`user_id` = #{creditRecordInfo.userId}
+        </if>
         order by cri.create_date desc
     </select>
 </mapper>

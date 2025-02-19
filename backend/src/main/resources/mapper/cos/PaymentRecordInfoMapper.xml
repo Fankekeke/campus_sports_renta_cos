@@ -42,6 +42,9 @@
         <if test="paymentRecordInfo.name != null and paymentRecordInfo.name != ''">
             AND di.name LIKE CONCAT('%',#{paymentRecordInfo.name},'%')
         </if>
+        <if test="paymentRecordInfo.userId != null and paymentRecordInfo.userId != ''">
+            AND ui.`user_id` = #{paymentRecordInfo.userId}
+        </if>
         order by pri.pay_date desc
     </select>
 </mapper>

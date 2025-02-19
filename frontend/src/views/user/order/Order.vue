@@ -402,6 +402,7 @@ export default {
       if (params.delFlag === undefined) {
         delete params.delFlag
       }
+      params.userId = this.currentUser.userId
       this.$get('/cos/park-order-info/page', {
         ...params
       }).then((r) => {
