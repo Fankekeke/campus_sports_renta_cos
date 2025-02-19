@@ -7,26 +7,26 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="订单编号"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.code"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="房间名称"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.name"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
                 label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
                 <a-input v-model="queryParams.userName"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="订单编号"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.orderCode"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="器材名称"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.deviceName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -51,7 +51,7 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
-        <template slot="contentShow" slot-scope="text, record">
+        <template slot="evaluateShow" slot-scope="text, record">
           <template>
             <a-tooltip>
               <template slot="title">
@@ -61,7 +61,15 @@
             </a-tooltip>
           </template>
         </template>
+        <template slot="operation" slot-scope="text, record">
+          <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情"></a-icon>
+        </template>
       </a-table>
+      <order-view
+        @close="handleorderViewClose"
+        :orderShow="orderView.visiable"
+        :orderData="orderView.data">
+      </order-view>
     </div>
   </a-card>
 </template>
@@ -70,11 +78,12 @@
 import RangeDate from '@/components/datetime/RangeDate'
 import {mapState} from 'vuex'
 import moment from 'moment'
+import OrderView from './OrderView'
 moment.locale('zh-cn')
 
 export default {
   name: 'evaluate',
-  components: {RangeDate},
+  components: {RangeDate, OrderView},
   data () {
     return {
       advanced: false,
@@ -83,6 +92,10 @@ export default {
       },
       evaluateEdit: {
         visiable: false
+      },
+      orderView: {
+        visiable: false,
+        data: null
       },
       queryParams: {},
       filteredInfo: null,
@@ -108,47 +121,45 @@ export default {
     }),
     columns () {
       return [{
-        title: '订单编号',
-        dataIndex: 'orderCode'
+        title: '评价用户',
+        ellipsis: true,
+        dataIndex: 'userName',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
       }, {
-        title: '订单价格',
+        title: '用户头像',
+        dataIndex: 'userImages',
+        customRender: (text, record, index) => {
+          if (!record.userImages) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
+          </a-popover>
+        }
+      }, {
+        title: '订单编号',
+        ellipsis: true,
+        dataIndex: 'orderCode',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '支付价格',
         dataIndex: 'totalPrice',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text + '元'
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '评价客户',
-        dataIndex: 'userName'
-      }, {
-        title: '房间号',
-        dataIndex: 'name',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '开始时间',
-        dataIndex: 'startDate',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '结束时间',
-        dataIndex: 'endDate',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
           } else {
             return '- -'
           }
@@ -165,8 +176,9 @@ export default {
         }
       }, {
         title: '评价内容',
+        ellipsis: true,
         dataIndex: 'content',
-        scopedSlots: { customRender: 'contentShow' }
+        scopedSlots: {customRender: 'evaluateShow'}
       }, {
         title: '评价图片',
         dataIndex: 'images',
@@ -180,7 +192,29 @@ export default {
           </a-popover>
         }
       }, {
+        title: '器材名称',
+        ellipsis: true,
+        dataIndex: 'name',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '器材类型',
+        dataIndex: 'typeName',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
         title: '评价时间',
+        ellipsis: true,
         dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -189,6 +223,10 @@ export default {
             return '- -'
           }
         }
+      }, {
+        title: '操作',
+        dataIndex: 'operation',
+        scopedSlots: {customRender: 'operation'}
       }]
     }
   },
@@ -196,6 +234,13 @@ export default {
     this.fetch()
   },
   methods: {
+    orderViewOpen (row) {
+      this.orderView.data = row
+      this.orderView.visiable = true
+    },
+    handleorderViewClose () {
+      this.orderView.visiable = false
+    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -313,8 +358,7 @@ export default {
       if (params.type === undefined) {
         delete params.type
       }
-      this.userId = this.currentUser.userId
-      this.$get('/cos/order-evaluate/page', {
+      this.$get('/cos/evaluate-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

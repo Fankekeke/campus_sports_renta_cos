@@ -126,6 +126,17 @@ public class RentOrderInfoController {
     }
 
     /**
+     * 根据订单编号查询订单详情
+     *
+     * @param orderCode 订单编号
+     * @return 结果
+     */
+    @GetMapping("/queryOrderDetail/{orderCode}")
+    public R queryOrderDetail(@PathVariable("orderCode") String orderCode) {
+        return R.ok(rentOrderInfoService.queryOrderDetail(orderCode));
+    }
+
+    /**
      * 租借订单列表
      *
      * @return 结果

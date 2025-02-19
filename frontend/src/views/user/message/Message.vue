@@ -300,7 +300,6 @@ export default {
       if (params.delFlag === undefined) {
         delete params.delFlag
       }
-      params.userId = this.currentUser.userId
       this.$get('/cos/message-info/page', {
         ...params
       }).then((r) => {

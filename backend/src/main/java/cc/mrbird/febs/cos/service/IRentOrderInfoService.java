@@ -81,6 +81,14 @@ public interface IRentOrderInfoService extends IService<RentOrderInfo> {
     List<RentOrderInfo> rendOrderMessage(Integer userId);
 
     /**
+     * 根据订单编号查询订单详情
+     *
+     * @param orderCode 订单编号
+     * @return 结果
+     */
+    LinkedHashMap<String, Object> queryOrderDetail(String orderCode);
+
+    /**
      * 首页数据
      *
      * @return 结果

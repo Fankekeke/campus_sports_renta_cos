@@ -7,15 +7,31 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="车牌号码"
+                label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.vehicleNumber"/>
+                <a-input v-model="queryParams.name"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="所属用户"
+                label="订单编号"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.orderCode"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="器械类型"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.typeName"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
                 <a-input v-model="queryParams.userName"/>
@@ -32,7 +48,7 @@
     <div>
       <div class="operator">
 <!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
-<!--        <a-button @click="batchDelete">删除</a-button>-->
+        <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -44,64 +60,39 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
-        <template slot="titleShow" slot-scope="text, record">
-          <template>
-            <a-tooltip>
-              <template slot="title">
-                {{ record.title }}
-              </template>
-              {{ record.title.slice(0, 8) }} ...
-            </a-tooltip>
-          </template>
-        </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改" style="margin-left: 15px"></a-icon>
-          <a-icon type="file-search" @click="handlevehicleViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon type="file-search" @click="recordViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
-    <vehicle-add
-      v-if="vehicleAdd.visiable"
-      @close="handlevehicleAddClose"
-      @success="handlevehicleAddSuccess"
-      :vehicleAddVisiable="vehicleAdd.visiable">
-    </vehicle-add>
-    <vehicle-edit
-      ref="vehicleEdit"
-      @close="handlevehicleEditClose"
-      @success="handlevehicleEditSuccess"
-      :vehicleEditVisiable="vehicleEdit.visiable">
-    </vehicle-edit>
-    <vehicle-view
-      @close="handlevehicleViewClose"
-      :vehicleShow="vehicleView.visiable"
-      :vehicleData="vehicleView.data">
-    </vehicle-view>
+    <record-view
+      @close="handlerecordViewClose"
+      :recordShow="recordView.visiable"
+      :recordData="recordView.data">
+    </record-view>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import vehicleAdd from './VehicleAdd'
-import vehicleEdit from './VehicleEdit'
-import vehicleView from './VehicleView'
+import recordView from './PaymentView.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'vehicle',
-  components: {vehicleAdd, vehicleEdit, vehicleView, RangeDate},
+  name: 'record',
+  components: {recordView, RangeDate},
   data () {
     return {
       advanced: false,
-      vehicleAdd: {
+      recordAdd: {
         visiable: false
       },
-      vehicleEdit: {
+      recordEdit: {
         visiable: false
       },
-      vehicleView: {
+      recordView: {
         visiable: false,
         data: null
       },
@@ -120,7 +111,7 @@ export default {
         showSizeChanger: true,
         showTotal: (total, range) => `显示 ${range[0]} ~ ${range[1]} 条记录，共 ${total} 条记录`
       },
-      brandList: []
+      userList: []
     }
   },
   computed: {
@@ -128,18 +119,9 @@ export default {
       currentUser: state => state.account.user
     }),
     columns () {
-      return [{
-        title: '车辆编号',
-        dataIndex: 'vehicleNo'
-      }, {
-        title: '车牌号码',
-        dataIndex: 'vehicleNumber'
-      }, {
-        title: '车辆名称',
-        dataIndex: 'name'
-      }, {
-        title: '发动机编号',
-        dataIndex: 'engineNo',
+      return [ {
+        title: '订单编号',
+        dataIndex: 'orderCode',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -148,36 +130,7 @@ export default {
           }
         }
       }, {
-        title: '照片',
-        dataIndex: 'images',
-        customRender: (text, record, index) => {
-          if (!record.images) return <a-avatar shape="square" icon="user" />
-          return <a-popover>
-            <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
-            </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
-          </a-popover>
-        }
-      }, {
-        title: '燃料类型',
-        dataIndex: 'fuelType',
-        customRender: (text, row, index) => {
-          switch (text) {
-            case '1':
-              return <a-tag>燃油</a-tag>
-            case '2':
-              return <a-tag>柴油</a-tag>
-            case '3':
-              return <a-tag>油电混动</a-tag>
-            case '4':
-              return <a-tag>电能</a-tag>
-            default:
-              return '- -'
-          }
-        }
-      }, {
-        title: '所属用户',
+        title: '用户名称',
         dataIndex: 'userName',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -187,7 +140,19 @@ export default {
           }
         }
       }, {
-        title: '联系电话',
+        title: '用户头像',
+        dataIndex: 'userImages',
+        customRender: (text, record, index) => {
+          if (!record.userImages) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
+          </a-popover>
+        }
+      }, {
+        title: '联系方式',
         dataIndex: 'phone',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -197,8 +162,51 @@ export default {
           }
         }
       }, {
-        title: '创建时间',
-        dataIndex: 'createDate',
+        title: '订单金额',
+        dataIndex: 'orderPrice',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + '元'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '支付状态',
+        dataIndex: 'status',
+        customRender: (text, row, index) => {
+          switch (text) {
+            case '0':
+              return <a-tag color="red">未支付</a-tag>
+            case '1':
+              return <a-tag color="green">已支付</a-tag>
+            default:
+              return '- -'
+          }
+        }
+      }, {
+        title: '器材名称',
+        dataIndex: 'name',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '器材类型',
+        dataIndex: 'typeName',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '支付时间',
+        dataIndex: 'payDate',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -217,24 +225,6 @@ export default {
     this.fetch()
   },
   methods: {
-    handlevehicleViewClose () {
-      this.vehicleView.visiable = false
-    },
-    handlevehicleViewOpen (row) {
-      this.vehicleView.data = row
-      this.vehicleView.visiable = true
-    },
-    selectShopList () {
-      this.$get(`/cos/brand-info/list`).then((r) => {
-        this.brandList = r.data.data
-      })
-    },
-    editStatus (row, status) {
-      this.$post('/cos/vehicle-info/account/status', { vehicleId: row.id, status }).then((r) => {
-        this.$message.success('修改成功')
-        this.fetch()
-      })
-    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -242,26 +232,33 @@ export default {
       this.advanced = !this.advanced
     },
     add () {
-      this.vehicleAdd.visiable = true
+      this.recordAdd.visiable = true
     },
-    handlevehicleAddClose () {
-      this.vehicleAdd.visiable = false
+    handlerecordAddClose () {
+      this.recordAdd.visiable = false
     },
-    handlevehicleAddSuccess () {
-      this.vehicleAdd.visiable = false
-      this.$message.success('新增车辆成功')
+    handlerecordAddSuccess () {
+      this.recordAdd.visiable = false
+      this.$message.success('新增会员成功')
       this.search()
     },
     edit (record) {
-      this.$refs.vehicleEdit.setFormValues(record)
-      this.vehicleEdit.visiable = true
+      this.$refs.recordEdit.setFormValues(record)
+      this.recordEdit.visiable = true
     },
-    handlevehicleEditClose () {
-      this.vehicleEdit.visiable = false
+    recordViewOpen (row) {
+      this.recordView.data = row
+      this.recordView.visiable = true
     },
-    handlevehicleEditSuccess () {
-      this.vehicleEdit.visiable = false
-      this.$message.success('修改车辆成功')
+    handlerecordViewClose () {
+      this.recordView.visiable = false
+    },
+    handlerecordEditClose () {
+      this.recordEdit.visiable = false
+    },
+    handlerecordEditSuccess () {
+      this.recordEdit.visiable = false
+      this.$message.success('修改会员成功')
       this.search()
     },
     handleDeptChange (value) {
@@ -279,7 +276,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/vehicle-info/' + ids).then(() => {
+          that.$delete('/cos/payment-record-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -349,11 +346,10 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      if (params.brand === undefined) {
-        delete params.brand
+      if (params.delFlag === undefined) {
+        delete params.delFlag
       }
-      params.userId = this.currentUser.userId
-      this.$get('/cos/vehicle-info/page', {
+      this.$get('/cos/payment-record-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

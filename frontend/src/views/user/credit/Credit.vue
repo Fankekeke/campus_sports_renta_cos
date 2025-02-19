@@ -7,26 +7,21 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="车位名称"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.spaceName"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="车牌号码"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.vehicleNumber"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
                 label="用户名称"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
                 <a-input v-model="queryParams.userName"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="操作类型"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-select v-model="queryParams.type" allowClear>
+                  <a-select-option value="1">加分</a-select-option>
+                  <a-select-option value="2">扣分</a-select-option>
+                </a-select>
               </a-form-item>
             </a-col>
           </div>
@@ -39,8 +34,8 @@
     </div>
     <div>
       <div class="operator">
-<!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
-        <a-button @click="batchDelete">删除</a-button>
+        <!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
+<!--        <a-button @click="batchDelete">删除</a-button>-->
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -52,42 +47,32 @@
                :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
                :scroll="{ x: 900 }"
                @change="handleTableChange">
+        <template slot="amountShow" slot-scope="text, record">
+          <a-icon v-if="record.isIn == 1" type="caret-up" style="color: red;font-size: 15px"/>
+          <a-icon v-if="record.isIn == 2" type="caret-down" style="color: green;font-size: 15px"/>
+          {{ record.amount }}
+        </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="file-search" @click="reserveViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.accountStatus == 0" type="caret-up" @click="edit(record, 1)" title="修 改"/>
+          <a-icon v-if="record.accountStatus == 1" type="caret-down" @click="edit(record, 0)" title="修 改"/>
         </template>
       </a-table>
     </div>
-    <reserve-view
-      @close="handlereserveViewClose"
-      :reserveShow="reserveView.visiable"
-      :reserveData="reserveView.data">
-    </reserve-view>
   </a-card>
 </template>
 
 <script>
 import RangeDate from '@/components/datetime/RangeDate'
-import reserveView from './ReserveView.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 moment.locale('zh-cn')
 
 export default {
-  name: 'reserve',
-  components: {reserveView, RangeDate},
+  name: 'Details',
+  components: {RangeDate},
   data () {
     return {
       advanced: false,
-      reserveAdd: {
-        visiable: false
-      },
-      reserveEdit: {
-        visiable: false
-      },
-      reserveView: {
-        visiable: false,
-        data: null
-      },
       queryParams: {},
       filteredInfo: null,
       sortedInfo: null,
@@ -103,7 +88,7 @@ export default {
         showSizeChanger: true,
         showTotal: (total, range) => `显示 ${range[0]} ~ ${range[1]} 条记录，共 ${total} 条记录`
       },
-      userList: []
+      consumableType: []
     }
   },
   computed: {
@@ -111,28 +96,9 @@ export default {
       currentUser: state => state.account.user
     }),
     columns () {
-      return [ {
+      return [{
         title: '用户名称',
-        dataIndex: 'name',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '用户头像',
-        dataIndex: 'images',
-        customRender: (text, record, index) => {
-          if (!record.images) return <a-avatar shape="square" icon="user" />
-          return <a-popover>
-            <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
-            </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
-          </a-popover>
-        }
+        dataIndex: 'userName'
       }, {
         title: '联系方式',
         dataIndex: 'phone',
@@ -144,41 +110,53 @@ export default {
           }
         }
       }, {
-        title: '车牌号码',
-        dataIndex: 'vehicleNumber',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
+        title: '用户头像',
+        dataIndex: 'userImages',
+        customRender: (text, record, index) => {
+          if (!record.userImages) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
+          </a-popover>
         }
       }, {
-        title: '车位名称',
-        dataIndex: 'spaceName',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '预约状态',
-        dataIndex: 'status',
+        title: '操作类型',
+        dataIndex: 'isIn',
         customRender: (text, row, index) => {
           switch (text) {
-            case '0':
-              return <a-tag color="red">结束</a-tag>
             case '1':
-              return <a-tag color="green">预约中</a-tag>
+              return <a-tag color="blue">加分</a-tag>
+            case '2':
+              return <a-tag color="pink">扣分</a-tag>
             default:
               return '- -'
           }
         }
       }, {
-        title: '预约开始时间',
-        dataIndex: 'startDate',
+        title: '信用积分',
+        dataIndex: 'score',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + ' 分'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '剩余积分',
+        dataIndex: 'afterScore',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text + ' 分'
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '备注',
+        dataIndex: 'content',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -187,8 +165,8 @@ export default {
           }
         }
       }, {
-        title: '预约结束时间',
-        dataIndex: 'endDate',
+        title: '操作时间',
+        dataIndex: 'createDate',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -196,10 +174,6 @@ export default {
             return '- -'
           }
         }
-      }, {
-        title: '操作',
-        dataIndex: 'operation',
-        scopedSlots: {customRender: 'operation'}
       }]
     }
   },
@@ -207,41 +181,17 @@ export default {
     this.fetch()
   },
   methods: {
+    edit (row, status) {
+      this.$post('/cos/student-info/accountStatusEdit', { userId: row.userId, status }).then((r) => {
+        this.$message.success('修改成功')
+        this.fetch()
+      })
+    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
     toggleAdvanced () {
       this.advanced = !this.advanced
-    },
-    add () {
-      this.reserveAdd.visiable = true
-    },
-    handlereserveAddClose () {
-      this.reserveAdd.visiable = false
-    },
-    handlereserveAddSuccess () {
-      this.reserveAdd.visiable = false
-      this.$message.success('新增会员成功')
-      this.search()
-    },
-    edit (record) {
-      this.$refs.reserveEdit.setFormValues(record)
-      this.reserveEdit.visiable = true
-    },
-    reserveViewOpen (row) {
-      this.reserveView.data = row
-      this.reserveView.visiable = true
-    },
-    handlereserveViewClose () {
-      this.reserveView.visiable = false
-    },
-    handlereserveEditClose () {
-      this.reserveEdit.visiable = false
-    },
-    handlereserveEditSuccess () {
-      this.reserveEdit.visiable = false
-      this.$message.success('修改会员成功')
-      this.search()
     },
     handleDeptChange (value) {
       this.queryParams.deptId = value || ''
@@ -258,7 +208,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/reserve-info/' + ids).then(() => {
+          that.$delete('/cos/credit-record-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -328,11 +278,10 @@ export default {
         params.size = this.pagination.defaultPageSize
         params.current = this.pagination.defaultCurrent
       }
-      if (params.delFlag === undefined) {
-        delete params.delFlag
+      if (params.type === undefined) {
+        delete params.type
       }
-      params.userId = this.currentUser.userId
-      this.$get('/cos/reserve-info/page', {
+      this.$get('/cos/credit-record-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

@@ -7,18 +7,10 @@
           <div :class="advanced ? null: 'fold'">
             <a-col :md="6" :sm="24">
               <a-form-item
-                label="车位名称"
+                label="订单编号"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.spaceName"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item
-                label="车牌号码"
-                :labelCol="{span: 5}"
-                :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.vehicleNumber"/>
+                <a-input v-model="queryParams.code"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
@@ -27,6 +19,22 @@
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
                 <a-input v-model="queryParams.userName"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="器械名称"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.name"/>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item
+                label="类型名称"
+                :labelCol="{span: 5}"
+                :wrapperCol="{span: 18, offset: 1}">
+                <a-input v-model="queryParams.typeName"/>
               </a-form-item>
             </a-col>
           </div>
@@ -39,8 +47,8 @@
     </div>
     <div>
       <div class="operator">
-<!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
-<!--        <a-button @click="batchDelete">删除</a-button>-->
+        <a-button type="primary" ghost @click="add">新增</a-button>
+        <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
       <a-table ref="TableInfo"
@@ -53,7 +61,7 @@
                :scroll="{ x: 900 }"
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
-          <a-icon v-if="record.status == 0" type="alipay" @click="pay(record)" title="支 付"></a-icon>
+          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="orderOverViewOpen(record)" title="订单完成" v-if="record.status == 2"></a-icon>
           <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status == 1"></a-icon>
           <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
@@ -71,6 +79,12 @@
       @success="handleorderEditSuccess"
       :orderEditVisiable="orderEdit.visiable">
     </order-edit>
+    <order-over
+      @close="handleorderOverViewClose"
+      @success="handleorderOverSuccess"
+      :orderShow="orderOverView.visiable"
+      :orderData="orderOverView.data">
+    </order-over>
     <order-view
       @close="handleorderViewClose"
       :orderShow="orderView.visiable"
@@ -84,6 +98,7 @@ import RangeDate from '@/components/datetime/RangeDate'
 import orderAdd from './OrderAdd.vue'
 import orderEdit from './OrderEdit.vue'
 import orderView from './OrderView.vue'
+import orderOver from './OrderOver.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
 import { newSpread, fixedForm, saveExcel } from '@/utils/spreadJS'
@@ -91,7 +106,7 @@ moment.locale('zh-cn')
 
 export default {
   name: 'order',
-  components: {orderAdd, orderEdit, orderView, RangeDate},
+  components: {orderAdd, orderEdit, orderView, orderOver, RangeDate},
   data () {
     return {
       advanced: false,
@@ -100,6 +115,10 @@ export default {
       },
       orderEdit: {
         visiable: false
+      },
+      orderOverView: {
+        visiable: false,
+        data: null
       },
       orderView: {
         visiable: false,
@@ -184,8 +203,8 @@ export default {
           }
         }
       }, {
-        title: '总时长（分钟）',
-        dataIndex: 'totalTime',
+        title: '总时长（小时）',
+        dataIndex: 'rentHour',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -204,14 +223,18 @@ export default {
           }
         }
       }, {
-        title: '缴费状态',
+        title: '状态',
         dataIndex: 'status',
         customRender: (text, row, index) => {
           switch (text) {
             case '0':
               return <a-tag color="red">未缴费</a-tag>
             case '1':
-              return <a-tag color="green">已缴费</a-tag>
+              return <a-tag color="green">已支付</a-tag>
+            case '2':
+              return <a-tag color="green">归还中</a-tag>
+            case '3':
+              return <a-tag color="green">已完成</a-tag>
             default:
               return '- -'
           }
@@ -243,32 +266,6 @@ export default {
       saveExcel(spread, `${row.payDate}缴费表.xlsx`)
       this.$message.destroy()
     },
-    pay (row) {
-      let data = { outTradeNo: row.code, subject: `${row.spaceName}`, totalAmount: row.totalPrice, body: '' }
-      this.$post('/cos/pay/alipay', data).then((r) => {
-        // console.log(r.data.msg)
-        // 添加之前先删除一下，如果单页面，页面不刷新，添加进去的内容会一直保留在页面中，二次调用form表单会出错
-        const divForm = document.getElementsByTagName('div')
-        if (divForm.length) {
-          document.body.removeChild(divForm[0])
-        }
-        const div = document.createElement('div')
-        div.innerHTML = r.data.msg // data就是接口返回的form 表单字符串
-        // console.log(div.innerHTML)
-        document.body.appendChild(div)
-        document.forms[0].setAttribute('target', '_self') // 新开窗口跳转
-        document.forms[0].submit()
-      })
-    },
-    overOrder (row) {
-      this.$get(`/cos/park-order-info/order/over`, {
-        orderCode: row.code,
-        userId: this.currentUser.userId
-      }).then((r) => {
-        this.$message.success('订单结算成功')
-        this.search()
-      })
-    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
@@ -293,6 +290,18 @@ export default {
     orderViewOpen (row) {
       this.orderView.data = row
       this.orderView.visiable = true
+    },
+    handleorderOverSuccess () {
+      this.orderOverView.visiable = false
+      this.$message.success('订单结算成功')
+      this.search()
+    },
+    handleorderOverViewClose () {
+      this.orderOverView.visiable = false
+    },
+    orderOverViewOpen (row) {
+      this.orderOverView.data = row
+      this.orderOverView.visiable = true
     },
     handleorderViewClose () {
       this.orderView.visiable = false
@@ -393,7 +402,6 @@ export default {
       if (params.delFlag === undefined) {
         delete params.delFlag
       }
-      params.userId = this.currentUser.userId
       this.$get('/cos/park-order-info/page', {
         ...params
       }).then((r) => {

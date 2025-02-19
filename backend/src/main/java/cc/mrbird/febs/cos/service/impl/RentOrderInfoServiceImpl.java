@@ -322,6 +322,28 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
     }
 
     /**
+     * 根据订单编号查询订单详情
+     *
+     * @param orderCode 订单编号
+     * @return 结果
+     */
+    @Override
+    public LinkedHashMap<String, Object> queryOrderDetail(String orderCode) {
+        // 返回数据
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        // 查询订单信息
+        RentOrderInfo rentOrderInfo = this.getOne(Wrappers.<RentOrderInfo>lambdaQuery().eq(RentOrderInfo::getCode, orderCode));
+        // 查询用户信息
+        UserInfo userInfo = userInfoMapper.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getId, rentOrderInfo.getUserId()));
+        // 查询设备信息
+        DeviceInfo deviceInfo = deviceInfoMapper.selectOne(Wrappers.<DeviceInfo>lambdaQuery().eq(DeviceInfo::getId, rentOrderInfo.getDeviceId()));
+        result.put("orderInfo", rentOrderInfo);
+        result.put("userInfo", userInfo);
+        result.put("deviceInfo", deviceInfo);
+        return result;
+    }
+
+    /**
      * 首页数据
      *
      * @return 结果

@@ -1,46 +1,37 @@
 <template>
-  <a-modal v-model="show" title="车位预约详情" @cancel="onClose" :width="800">
+  <a-modal v-model="show" title="订单详情" @cancel="onClose" :width="1000">
     <template slot="footer">
+      <a-button key="over" @click="overOrder" :loading="loading">
+        结算
+      </a-button>
       <a-button key="back" @click="onClose" type="danger">
         关闭
       </a-button>
     </template>
-    <div style="font-size: 13px;font-family: SimHei" v-if="reserveData !== null">
+    <div style="font-size: 13px;font-family: SimHei" v-if="orderData !== null">
       <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">基础信息</span></a-col>
+        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">用户信息</span></a-col>
         <a-col :span="8"><b>用户编号：</b>
-          {{ reserveData.code ? reserveData.code : '- -' }}
+          {{ orderData.code ? orderData.code : '- -' }}
         </a-col>
         <a-col :span="8"><b>用户名称：</b>
-          {{ reserveData.name ? reserveData.name : '- -' }}
+          {{ orderData.name ? orderData.name : '- -' }}
         </a-col>
         <a-col :span="8"><b>联系方式：</b>
-          {{ reserveData.phone }}
+          {{ orderData.phone }}
         </a-col>
       </a-row>
       <br/>
       <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col :span="8"><b>预约开始时间：</b>
-          {{ reserveData.startDate }}
-        </a-col>
-        <a-col :span="8"><b>预约开始时间：</b>
-          {{ reserveData.endDate }}
-        </a-col>
-        <a-col :span="8"><b>会员等级：</b>
-          <span v-if="reserveData.status == 0" style="color: red">结束</span>
-          <span v-if="reserveData.status == 1" style="color: green">预约中</span>
-        </a-col>
-      </a-row>
-      <br/>
-      <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col :span="8"><b>车位名称：</b>
-          {{ reserveData.spaceName }}
-        </a-col>
+        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">车辆信息</span></a-col>
         <a-col :span="8"><b>车牌号码：</b>
-          {{ reserveData.vehicleNumber }}
+          {{ orderData.vehicleNumber ? orderData.vehicleNumber : '- -' }}
         </a-col>
-        <a-col :span="8"><b>车位地点：</b>
-          {{ reserveData.spaceAddress }}
+        <a-col :span="8"><b>车辆颜色：</b>
+          {{ orderData.vehicleColor ? orderData.vehicleColor : '- -' }}
+        </a-col>
+        <a-col :span="8"><b>车辆编号：</b>
+          {{ orderData.vehicleNo }}
         </a-col>
       </a-row>
       <br/>
@@ -62,6 +53,37 @@
         </a-col>
       </a-row>
       <br/>
+      <a-row style="padding-left: 24px;padding-right: 24px;">
+        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">订单信息</span></a-col>
+        <a-col :span="8"><b>车位名称：</b>
+          {{ orderData.spaceName ? orderData.spaceName : '- -' }}
+        </a-col>
+        <a-col :span="16"><b>车位地点：</b>
+          {{ orderData.spaceAddress ? orderData.spaceAddress : '- -' }}
+        </a-col>
+      </a-row>
+      <br/>
+      <a-row style="padding-left: 24px;padding-right: 24px;">
+        <a-col :span="8"><b>驶入时间：</b>
+          {{ orderData.startDate ? orderData.startDate : '- -' }}
+        </a-col>
+        <a-col :span="8"><b>驶出时间：</b>
+          {{ orderData.endDate ? orderData.endDate : '- -' }}
+        </a-col>
+        <a-col :span="8"><b>总时长（分钟）：</b>
+          {{ orderData.totalTime ? orderData.totalTime : '- -' }}
+        </a-col>
+      </a-row>
+      <br/>
+      <a-row style="padding-left: 24px;padding-right: 24px;">
+        <a-col :span="8"><b>价格/时：</b>
+          {{ orderData.price ? (orderData.price + '元') : '- -' }}
+        </a-col>
+        <a-col :span="8"><b>总费用：</b>
+          {{ orderData.totalPrice ? (orderData.totalPrice + '元') : '- -' }}
+        </a-col>
+      </a-row>
+      <br/>
     </div>
   </a-modal>
 </template>
@@ -79,20 +101,20 @@ function getBase64 (file) {
   })
 }
 export default {
-  name: 'reserveView',
+  name: 'orderView',
   props: {
-    reserveShow: {
+    orderShow: {
       type: Boolean,
       default: false
     },
-    reserveData: {
+    orderData: {
       type: Object
     }
   },
   computed: {
     show: {
       get: function () {
-        return this.reserveShow
+        return this.orderShow
       },
       set: function () {
       }
@@ -112,20 +134,29 @@ export default {
     }
   },
   watch: {
-    reserveShow: function (value) {
+    orderShow: function (value) {
       if (value) {
-        if (this.reserveData.vehicleImages) {
-          this.imagesInit(this.reserveData.vehicleImages)
+        if (this.orderData.vehicleImages) {
+          this.imagesInit(this.orderData.vehicleImages)
         }
       }
     }
   },
   methods: {
-    local (reserveData) {
+    overOrder (row) {
+      this.loading = true
+      this.$get(`/cos/park-order-info/order/over`, {
+        orderCode: this.orderData.code
+      }).then((r) => {
+        this.loading = false
+        this.$emit('success')
+      })
+    },
+    local (orderData) {
       baiduMap.clearOverlays()
       baiduMap.rMap().enableScrollWheelZoom(true)
       // eslint-disable-next-line no-undef
-      let point = new BMap.Point(reserveData.longitude, reserveData.latitude)
+      let point = new BMap.Point(orderData.longitude, orderData.latitude)
       baiduMap.pointAdd(point)
       baiduMap.findPoint(point, 16)
       // let driving = new BMap.DrivingRoute(baiduMap.rMap(), {renderOptions:{map: baiduMap.rMap(), autoViewport: true}});

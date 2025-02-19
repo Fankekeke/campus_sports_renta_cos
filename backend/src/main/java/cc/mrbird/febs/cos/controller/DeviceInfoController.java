@@ -39,6 +39,16 @@ public class DeviceInfoController {
     }
 
     /**
+     * 获取设备状态信息
+     *
+     * @return 结果
+     */
+    @GetMapping("/queryDeviceList")
+    public R queryDeviceList() {
+        return R.ok(deviceInfoService.queryDeviceList());
+    }
+
+    /**
      * 更新器材上下架状态
      *
      * @param id   主键
