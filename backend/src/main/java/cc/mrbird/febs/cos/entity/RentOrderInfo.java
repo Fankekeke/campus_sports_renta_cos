@@ -75,7 +75,7 @@ public class RentOrderInfo implements Serializable {
     private BigDecimal totalPrice;
 
     /**
-     * 状态（0.未支付 1.已支付 2.归还中 3.已完成）
+     * 状态（-1.已过期 0.未支付 1.已支付 2.归还中 3.已完成）
      */
     private String status;
 

@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
@@ -34,6 +35,8 @@ import java.util.*;
 public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, RentOrderInfo> implements IRentOrderInfoService {
 
     private final DeviceInfoMapper deviceInfoMapper;
+
+    private final IDeviceInfoService deviceInfoService;
 
     private final UserInfoMapper userInfoMapper;
 
@@ -189,8 +192,58 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
             if (count > 0) {
                 throw new FebsException("用户还有未归还订单，无法进行租借");
             }
+            // 获取用户是否还有未支付订单
+            int count1 = this.count(Wrappers.<RentOrderInfo>lambdaQuery().eq(RentOrderInfo::getUserId, userInfo.getId()).eq(RentOrderInfo::getStatus, "0"));
+            if (count1 > 0) {
+                throw new FebsException("用户还有未支付的订单，无法进行租借");
+            }
         }
         return false;
+    }
+
+    /**
+     * 定时任务计算已过期订单
+     */
+    @Scheduled(cron ="0 0/5 * * * ? ")
+    void checkReturnOrderList() {
+        // 获取所有未支付订单
+        List<RentOrderInfo> list = this.list(Wrappers.<RentOrderInfo>lambdaQuery().eq(RentOrderInfo::getStatus, "0"));
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        // 待更新订单
+        List<RentOrderInfo> updateList = new ArrayList<>();
+        // 消息通知
+        List<MessageInfo> messageList = new ArrayList<>();
+        // 器械IDS
+        List<Integer> deviceIdList = new ArrayList<>();
+
+        // 校验订单是否过期
+        for (RentOrderInfo rentOrderInfo : list) {
+            if (DateUtil.compare(DateUtil.parseDateTime(rentOrderInfo.getEndDate()), new Date()) < 0) {
+                rentOrderInfo.setStatus("2");
+                // 设置消息内容
+                MessageInfo messageInfo = new MessageInfo();
+                messageInfo.setUserId(rentOrderInfo.getUserId());
+                messageInfo.setContent("你好你的订单 “" + rentOrderInfo.getCode() + "” 已过期");
+                messageInfo.setStatus("0");
+                messageInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
+                updateList.add(rentOrderInfo);
+                messageList.add(messageInfo);
+
+                deviceIdList.add(rentOrderInfo.getDeviceId());
+            }
+        }
+
+        if (CollectionUtil.isNotEmpty(updateList)) {
+            this.updateBatchById(updateList);
+        }
+        if (CollectionUtil.isNotEmpty(messageList)) {
+            messageInfoService.saveBatch(messageList);
+        }
+        if (CollectionUtil.isNotEmpty(deviceIdList)) {
+            deviceInfoService.update(Wrappers.<DeviceInfo>lambdaUpdate().set(DeviceInfo::getStatus, "1").in(DeviceInfo::getId, deviceIdList));
+        }
     }
 
     /**

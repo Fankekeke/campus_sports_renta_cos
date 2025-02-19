@@ -227,6 +227,8 @@ export default {
         dataIndex: 'status',
         customRender: (text, row, index) => {
           switch (text) {
+            case '-1':
+              return <a-tag color="red">已过期</a-tag>
             case '0':
               return <a-tag color="red">未缴费</a-tag>
             case '1':
