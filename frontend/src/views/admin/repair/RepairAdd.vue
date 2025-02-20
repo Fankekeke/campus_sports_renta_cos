@@ -121,7 +121,7 @@ export default {
   },
   methods: {
     selectDeviceList () {
-      this.$get(`/cos/device-info/list`).then((r) => {
+      this.$get(`/cos/device-info/queryOnlineDevice`).then((r) => {
         this.deviceList = r.data.data
       })
     },

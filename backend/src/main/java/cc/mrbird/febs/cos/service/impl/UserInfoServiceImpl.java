@@ -1,7 +1,9 @@
 package cc.mrbird.febs.cos.service.impl;
 
+import cc.mrbird.febs.cos.entity.RentOrderInfo;
 import cc.mrbird.febs.cos.entity.UserInfo;
 import cc.mrbird.febs.cos.dao.UserInfoMapper;
+import cc.mrbird.febs.cos.service.IRentOrderInfoService;
 import cc.mrbird.febs.cos.service.IUserInfoService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -19,6 +21,8 @@ import java.util.LinkedHashMap;
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements IUserInfoService {
+
+    private final IRentOrderInfoService orderInfoService;
 
     /**
      * 分页获取用户信息
@@ -43,7 +47,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         // 返回数据
         LinkedHashMap<String, Object> result = new LinkedHashMap<>();
 
-        result.put("user", this.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId)));
+        UserInfo userInfo = this.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
+        result.put("user", userInfo);
+        result.put("order", orderInfoService.list(Wrappers.<RentOrderInfo>lambdaQuery().eq(RentOrderInfo::getUserId, userInfo.getId()).ne(RentOrderInfo::getStatus, "-1")));
         return result;
     }
 }

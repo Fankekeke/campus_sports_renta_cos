@@ -50,6 +50,13 @@
                 </a-select>
               </a-form-item>
             </a-col>
+            <a-col :span="12">
+              <a-form-item label='信用积分' v-bind="formItemLayout">
+                <a-input disabled v-decorator="[
+                'creditScore'
+                ]"/>
+              </a-form-item>
+            </a-col>
             <a-col :span="24">
               <a-form-item label='头像' v-bind="formItemLayout">
                 <a-upload
@@ -189,7 +196,7 @@ export default {
     },
     setFormValues ({...expert}) {
       this.rowId = expert.id
-      let fields = ['code', 'name', 'phone', 'sex', 'email', 'images', 'createDate']
+      let fields = ['code', 'name', 'phone', 'sex', 'email', 'images', 'createDate', 'creditScore']
       let obj = {}
       Object.keys(expert).forEach((key) => {
         if (key === 'images') {

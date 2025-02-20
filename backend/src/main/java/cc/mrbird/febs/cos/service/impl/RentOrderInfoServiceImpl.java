@@ -124,6 +124,7 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String addRentOrder(RentOrderInfo rentOrderInfo) throws AlipayApiException {
         rentOrderInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         // 设置租借订单编号
@@ -136,9 +137,15 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
         rentOrderInfo.setStatus("0");
         this.save(rentOrderInfo);
 
+        // 更新设备状态
+        // 获取器材信息
+        DeviceInfo deviceInfo = deviceInfoMapper.selectById(rentOrderInfo.getDeviceId());
+        deviceInfo.setStatus("2");
+        deviceInfoMapper.updateById(deviceInfo);
+
         AlipayBean alipayBean = new AlipayBean();
-        alipayBean.setOut_trade_no(rentOrderInfo.getCode() + "缴费信息");
-        alipayBean.setSubject(rentOrderInfo.getCode());
+        alipayBean.setOut_trade_no(rentOrderInfo.getCode());
+        alipayBean.setSubject(rentOrderInfo.getCode() + "缴费信息");
         alipayBean.setTotal_amount(String.valueOf(rentOrderInfo.getTotalPrice()));
         alipayBean.setBody("");
         String result = payService.aliPay(alipayBean);
@@ -271,13 +278,14 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean returnDevice(String orderCode) {
         // 获取订单信息
         RentOrderInfo rentOrderInfo = this.getOne(Wrappers.<RentOrderInfo>lambdaQuery().eq(RentOrderInfo::getCode, orderCode));
         // 获取用户信息
-        UserInfo userInfo = userInfoMapper.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, rentOrderInfo.getUserId()));
+        UserInfo userInfo = userInfoMapper.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getId, rentOrderInfo.getUserId()));
         // 逾期一次扣10分
-        if (DateUtil.compare(DateUtil.parseDateTime(rentOrderInfo.getReturnDate()), new Date()) > 0) {
+        if (DateUtil.compare(DateUtil.parseDateTime(rentOrderInfo.getEndDate()), new Date()) < 0) {
             // 获取用户信息
             userInfo.setCreditScore(userInfo.getCreditScore() - 10);
             userInfoMapper.updateById(userInfo);
@@ -446,7 +454,7 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
         // 近十天内订单收益统计
         List<LinkedHashMap<String, Object>> orderAmountDays = baseMapper.selectOrderAmountDays();
         // 公告
-        List<BulletinInfo> bulletinInfoList = bulletinInfoService.list(Wrappers.<BulletinInfo>lambdaQuery().eq(BulletinInfo::getRackUp, 1));
+        List<BulletinInfo> bulletinInfoList = bulletinInfoService.list();
         result.put("orderNumMonth", orderNumMonth);
         result.put("orderAmountMonth", orderAmountMonth);
         result.put("orderNumYear", orderNumYear);
@@ -457,7 +465,7 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
         result.put("totalPrice", amount);
         result.put("orderNumDays", orderNumDays);
         result.put("orderAmountDays", orderAmountDays);
-        result.put("bulletinInfoList", bulletinInfoList);
+        result.put("bulletin", bulletinInfoList);
         return result;
     }
 }

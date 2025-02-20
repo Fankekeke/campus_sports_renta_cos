@@ -61,7 +61,7 @@
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
           <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="orderOverViewOpen(record)" title="订单完成" v-if="record.status == 2"></a-icon>
-          <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status == 1"></a-icon>
+          <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status > 0"></a-icon>
           <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
@@ -147,6 +147,9 @@ export default {
     }),
     columns () {
       return [ {
+        title: '订单编号',
+        dataIndex: 'code'
+      }, {
         title: '订单用户',
         dataIndex: 'name'
       }, {
@@ -256,15 +259,15 @@ export default {
       let spread = newSpread('textTable')
       let sheet = spread.getActiveSheet()
       sheet.suspendPaint()
-      sheet.setValue(1, 2, row.name)
-      sheet.setValue(1, 4, row.payDate)
-      sheet.setValue(4, 2, row.spaceName)
-      sheet.setValue(4, 3, row.totalTime)
-      sheet.setValue(4, 4, row.price + ' 元')
+      sheet.setValue(1, 2, row.userName)
+      sheet.setValue(1, 4, row.createDate)
+      sheet.setValue(4, 2, row.name)
+      sheet.setValue(4, 3, row.rentHour)
+      sheet.setValue(4, 4, row.unitPrice + ' 元')
       sheet.setValue(5, 4, row.totalPrice + ' 元')
       sheet.setValue(7, 1, row.content)
-      spread = fixedForm(spread, 'textTable', { title: `${row.payDate}缴费表` })
-      saveExcel(spread, `${row.payDate}缴费表.xlsx`)
+      spread = fixedForm(spread, 'textTable', { title: `${row.code}缴费表` })
+      saveExcel(spread, `${row.code}缴费表.xlsx`)
       this.$message.destroy()
     },
     onSelectChange (selectedRowKeys) {

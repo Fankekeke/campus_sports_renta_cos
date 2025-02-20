@@ -79,7 +79,7 @@ public class UserInfoController {
     @GetMapping("/setUserCreditScore")
     public R setUserCreditScore(@RequestParam("userId") Integer userId) {
         // 获取用户信息
-        UserInfo userInfo = userInfoService.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
+        UserInfo userInfo = userInfoService.getById(userId);
         if (userInfo != null) {
             int creditScore = 60 - userInfo.getCreditScore();
             // 添加用户信用积分记录

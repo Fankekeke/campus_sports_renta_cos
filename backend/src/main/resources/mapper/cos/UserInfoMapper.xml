@@ -11,6 +11,7 @@
             images,
             sex,
             create_date,
+            credit_score,
             phone,
             email
         from

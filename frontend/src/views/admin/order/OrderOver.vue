@@ -2,7 +2,7 @@
   <a-modal v-model="show" title="订单详情" @cancel="onClose" :width="1000">
     <template slot="footer">
       <a-button key="over" @click="overOrder" :loading="loading">
-        结算
+        完成结算
       </a-button>
       <a-button key="back" @click="onClose" type="danger">
         关闭
@@ -153,6 +153,7 @@ export default {
       reserveInfo: null,
       durgList: [],
       logisticsList: [],
+      current: 0,
       userInfo: null,
       orderInfo: null,
       deviceInfo: null
@@ -161,6 +162,7 @@ export default {
   watch: {
     orderShow: function (value) {
       if (value) {
+        this.current = this.orderData.status
         if (this.orderData.typeImages) {
           this.imagesInit(this.orderData.typeImages)
         }
@@ -169,7 +171,7 @@ export default {
     }
   },
   methods: {
-    queryOrderDetail(orderCode) {
+    queryOrderDetail (orderCode) {
       this.$get(`/cos/rent-order-info/queryOrderDetail/${orderCode}`).then((r) => {
         this.orderInfo = r.data.orderInfo
         this.userInfo = r.data.userInfo

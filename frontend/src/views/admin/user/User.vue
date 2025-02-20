@@ -46,6 +46,7 @@
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
           <a-icon type="file-search" @click="userViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.creditScore && record.creditScore < 60" type="rollback" @click="rollback(record)" title="重置积分" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
@@ -169,6 +170,16 @@ export default {
           }
         }
       }, {
+        title: '信用积分',
+        dataIndex: 'creditScore',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
         title: '创建时间',
         dataIndex: 'createDate',
         customRender: (text, row, index) => {
@@ -209,6 +220,12 @@ export default {
     edit (record) {
       this.$refs.userEdit.setFormValues(record)
       this.userEdit.visiable = true
+    },
+    rollback (row) {
+      this.$get(`/cos/user-info/setUserCreditScore`, {userId: row.id}).then((r) => {
+        this.$message.success('积分重置成功')
+        this.search()
+      })
     },
     userViewOpen (row) {
       this.userView.data = row

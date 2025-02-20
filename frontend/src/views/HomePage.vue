@@ -116,8 +116,8 @@ export default {
   },
   methods: {
     rendOrderMessage () {
-      if (this.currentUser.roleId == 75) {
-        this.$get(`/cos/rent-order-info/rendOrderMessage`).then((r) => {
+      if (this.user.roleId == 75) {
+        this.$get(`/cos/rent-order-info/rendOrderMessage`, {userId: this.user.userId}).then((r) => {
           let data = r.data.data
           if (data) {
             this.$notification.open({
@@ -125,9 +125,9 @@ export default {
               description:
                 '您好，您当前有部分订单即将临期！请尽快归还.',
               onClick: () => {
-                console.log('Notification Clicked!');
-              },
-            });
+                console.log('Notification Clicked!')
+              }
+            })
           }
         })
       }
@@ -143,6 +143,7 @@ export default {
     }
   },
   mounted () {
+    this.rendOrderMessage()
     this.welcomeMessage = this.welcome()
     this.$get(`index/${this.user.username}`).then((r) => {
       let data = r.data.data

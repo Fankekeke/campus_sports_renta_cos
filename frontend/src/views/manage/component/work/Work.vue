@@ -51,10 +51,10 @@
               <div style="margin-top: 10px;font-size: 13px;">
                 <a-row>
                   <a-col :span="12">
-                    单价：<sapn style="color: #fa541c">{{ item.unitPrice }}元/小时</sapn>
+                    单价：<span style="color: #fa541c">{{ item.unitPrice }}元/小时</span>
                   </a-col>
                   <a-col :span="12">
-                    押金：<sapn style="color: #fa541c">{{ item.depositPrice }}元</sapn>
+                    押金：<span style="color: #fa541c">{{ item.depositPrice }}元</span>
                   </a-col>
                 </a-row>
               </div>
@@ -93,10 +93,10 @@
                 <div style="margin-top: 10px;font-size: 13px;">
                   <a-row>
                     <a-col :span="12">
-                      单价：<sapn style="color: #fa541c">{{ spaceInfo.unitPrice }}元/小时</sapn>
+                      单价：<span style="color: #fa541c">{{ spaceInfo.unitPrice }}元/小时</span>
                     </a-col>
                     <a-col :span="12">
-                      押金：<sapn style="color: #fa541c">{{ spaceInfo.depositPrice }}元</sapn>
+                      押金：<span style="color: #fa541c">{{ spaceInfo.depositPrice }}元</span>
                     </a-col>
                   </a-row>
                 </div>
@@ -114,16 +114,16 @@
             <a-col :span="24" style="margin-top: 20px" v-if="orderInfo != null">
               <a-row>
                 <a-col :span="8">
-                  租用小时：<sapn style="color: #fa541c">{{ orderInfo.rentHour }}小时</sapn>
+                  租用小时：<span style="color: #fa541c">{{ orderInfo.rentHour }}小时</span>
                 </a-col>
                 <a-col :span="8">
-                  单价：<sapn style="color: #fa541c">{{ orderInfo.unitPrice }}小时/元</sapn>
+                  单价：<span style="color: #fa541c">{{ orderInfo.unitPrice }}小时/元</span>
                 </a-col>
                 <a-col :span="8">
-                  支付押金：<sapn style="color: #fa541c">{{ orderInfo.depositPrice }}元</sapn>
+                  支付押金：<span style="color: #fa541c">{{ orderInfo.depositPrice }}元</span>
                 </a-col>
                 <a-col :span="24" style="margin-top: 10px">
-                  <span style="font-size: 16px;font-weight: 600">总价</span>：<sapn style="color: #fa541c">{{ orderInfo.totalPrice }}元</sapn>
+                  <span style="font-size: 16px;font-weight: 600">总价</span>：<span style="color: #fa541c">{{ orderInfo.totalPrice }}元</span>
                 </a-col>
               </a-row>
             </a-col>
@@ -214,18 +214,17 @@ export default {
     },
     reserveSpace () {
       let data = this.orderInfo
-      this.$post('/cos/rent-order-info', {
-        data
-      }).then((r) => {
+      this.$post('/cos/rent-order-info', data).then((r) => {
         this.$message.success('下单成功！请前往支付')
-        this.visible = false
-        this.getWorkStatusList()
+        // this.visible = false
+        // this.getWorkStatusList()
         const divForm = document.getElementsByTagName('div')
         if (divForm.length) {
           document.body.removeChild(divForm[0])
         }
         const div = document.createElement('div')
-        div.innerHTML = r.data.data // data就是接口返回的form 表单字符串
+        console.log(r.data.msg)
+        div.innerHTML = r.data.msg // data就是接口返回的form 表单字符串
         // console.log(div.innerHTML)
         document.body.appendChild(div)
         document.forms[0].setAttribute('target', '_self') // 新开窗口跳转

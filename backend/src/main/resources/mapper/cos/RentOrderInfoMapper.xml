@@ -25,7 +25,8 @@
         di.model,
         di.brand,
         dti.name as typeName,
-        dti.images as typeImages
+        dti.images as typeImages,
+        evi.id as evaluateFlag
         from rent_order_info roi
         left join user_info ui on
         (ui.id = roi.user_id)
@@ -33,6 +34,8 @@
         (di.id = roi.device_id)
         left join device_type_info dti on
         (dti.id = di.type_id)
+        left join evaluate_info evi on
+        (evi.order_code = roi.code)
         where 1 = 1
         <if test="rentOrderInfo.code != null and rentOrderInfo.code != ''">
             AND roi.code LIKE CONCAT('%',#{rentOrderInfo.code},'%')

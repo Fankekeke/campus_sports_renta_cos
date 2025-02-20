@@ -75,7 +75,7 @@
           </template>
         </template>
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
+          <a-icon v-if="record.status == 0" type="check" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
         </template>
       </a-table>
     </div>
@@ -254,8 +254,13 @@ export default {
       this.search()
     },
     edit (record) {
-      this.$refs.spaceEdit.setFormValues(record)
-      this.spaceEdit.visiable = true
+      // this.$refs.spaceEdit.setFormValues(record)
+      // this.spaceEdit.visiable = true
+
+      this.$get('/cos/repair-record-info/updateRepairStatus', {id: record.id}).then((r) => {
+        this.$message.success('器材维修完成')
+        this.search()
+      })
     },
     handlespaceEditClose () {
       this.spaceEdit.visiable = false

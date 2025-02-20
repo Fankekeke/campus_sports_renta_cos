@@ -123,7 +123,7 @@ export default {
         }
       }, {
         title: '操作类型',
-        dataIndex: 'isIn',
+        dataIndex: 'type',
         customRender: (text, row, index) => {
           switch (text) {
             case '1':

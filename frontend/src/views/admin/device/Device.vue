@@ -83,8 +83,8 @@
         </template>
         <template slot="operation" slot-scope="text, record">
           <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
-          <a-icon v-if="record.outFlag == '0'" type="caret-down" @click="audit(record.id, 1)" title="上 架" style="margin-left: 15px"></a-icon>
-          <a-icon v-if="record.outFlag == '1'" type="caret-up" @click="audit(record.id, 0)" title="下 架" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.outFlag == '0' && record.status == 1" type="caret-down" @click="audit(record.id, 1)" title="上 架" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.outFlag == '1' && record.status == 1" type="caret-up" @click="audit(record.id, 0)" title="下 架" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>

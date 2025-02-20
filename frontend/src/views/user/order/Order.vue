@@ -61,8 +61,10 @@
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
           <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="returnDevice(record)" title="器械归还" v-if="record.status == 1"></a-icon>
-          <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status == 1"></a-icon>
+          <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status > 0"></a-icon>
           <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.status == 0" type="alipay" @click="pay(record)" title="支 付" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.evaluateFlag == null && record.status == 3" type="reconciliation" theme="twoTone" twoToneColor="#4a9ff5" @click="orderEvaluateOpen(record)" title="评 价" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
@@ -89,6 +91,12 @@
       :orderShow="orderView.visiable"
       :orderData="orderView.data">
     </order-view>
+    <order-evaluate
+      @close="handleorderAddClose"
+      @success="handleorderAddSuccess"
+      :evaluateAddVisiable="orderEvaluateView.visiable"
+      :orderData="orderEvaluateView.data">
+    </order-evaluate>
   </a-card>
 </template>
 
@@ -97,6 +105,7 @@ import RangeDate from '@/components/datetime/RangeDate'
 import orderAdd from './OrderAdd.vue'
 import orderEdit from './OrderEdit.vue'
 import orderView from './OrderView.vue'
+import orderEvaluate from './OrderEvaluate'
 import orderOver from './OrderOver.vue'
 import {mapState} from 'vuex'
 import moment from 'moment'
@@ -105,7 +114,7 @@ moment.locale('zh-cn')
 
 export default {
   name: 'order',
-  components: {orderAdd, orderEdit, orderView, orderOver, RangeDate},
+  components: {orderAdd, orderEdit, orderView, orderOver, orderEvaluate, RangeDate},
   data () {
     return {
       advanced: false,
@@ -120,6 +129,10 @@ export default {
         data: null
       },
       orderView: {
+        visiable: false,
+        data: null
+      },
+      orderEvaluateView: {
         visiable: false,
         data: null
       },
@@ -147,8 +160,11 @@ export default {
     }),
     columns () {
       return [ {
+        title: '订单编号',
+        dataIndex: 'code'
+      }, {
         title: '订单用户',
-        dataIndex: 'name'
+        dataIndex: 'userName'
       }, {
         title: '用户头像',
         dataIndex: 'userImages',
@@ -251,6 +267,35 @@ export default {
     this.fetch()
   },
   methods: {
+    orderEvaluateOpen (row) {
+      this.orderEvaluateView.data = row
+      this.orderEvaluateView.visiable = true
+    },
+    pay (row) {
+      let data = { outTradeNo: row.code, subject: `${row.code}`, totalAmount: row.totalPrice, body: '' }
+      this.$post('/cos/pay/alipay', data).then((r) => {
+        // console.log(r.data.msg)
+        // 添加之前先删除一下，如果单页面，页面不刷新，添加进去的内容会一直保留在页面中，二次调用form表单会出错
+        const divForm = document.getElementsByTagName('div')
+        if (divForm.length) {
+          document.body.removeChild(divForm[0])
+        }
+        const div = document.createElement('div')
+        div.innerHTML = r.data.msg // data就是接口返回的form 表单字符串
+        // console.log(div.innerHTML)
+        document.body.appendChild(div)
+        document.forms[0].setAttribute('target', '_self') // 新开窗口跳转
+        document.forms[0].submit()
+      })
+    },
+    handleorderAddClose () {
+      this.orderEvaluateView.visiable = false
+    },
+    handleorderAddSuccess () {
+      this.orderEvaluateView.visiable = false
+      this.$message.success('新增评价成功')
+      this.search()
+    },
     returnDevice (row) {
       let that = this
       this.$confirm({
@@ -272,15 +317,15 @@ export default {
       let spread = newSpread('textTable')
       let sheet = spread.getActiveSheet()
       sheet.suspendPaint()
-      sheet.setValue(1, 2, row.name)
-      sheet.setValue(1, 4, row.payDate)
-      sheet.setValue(4, 2, row.spaceName)
-      sheet.setValue(4, 3, row.totalTime)
-      sheet.setValue(4, 4, row.price + ' 元')
+      sheet.setValue(1, 2, row.userName)
+      sheet.setValue(1, 4, row.createDate)
+      sheet.setValue(4, 2, row.name)
+      sheet.setValue(4, 3, row.rentHour)
+      sheet.setValue(4, 4, row.unitPrice + ' 元')
       sheet.setValue(5, 4, row.totalPrice + ' 元')
       sheet.setValue(7, 1, row.content)
-      spread = fixedForm(spread, 'textTable', { title: `${row.payDate}缴费表` })
-      saveExcel(spread, `${row.payDate}缴费表.xlsx`)
+      spread = fixedForm(spread, 'textTable', { title: `${row.code}缴费表` })
+      saveExcel(spread, `${row.code}缴费表.xlsx`)
       this.$message.destroy()
     },
     onSelectChange (selectedRowKeys) {
@@ -291,14 +336,6 @@ export default {
     },
     add () {
       this.orderAdd.visiable = true
-    },
-    handleorderAddClose () {
-      this.orderAdd.visiable = false
-    },
-    handleorderAddSuccess () {
-      this.orderAdd.visiable = false
-      this.$message.success('新增订单成功')
-      this.search()
     },
     edit (record) {
       this.$refs.orderEdit.setFormValues(record)

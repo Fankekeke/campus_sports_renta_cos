@@ -175,14 +175,7 @@ export default {
         title: '支付状态',
         dataIndex: 'status',
         customRender: (text, row, index) => {
-          switch (text) {
-            case '0':
-              return <a-tag color="red">未支付</a-tag>
-            case '1':
-              return <a-tag color="green">已支付</a-tag>
-            default:
-              return '- -'
-          }
+          return <a-tag color="green">已支付</a-tag>
         }
       }, {
         title: '器材名称',
@@ -214,10 +207,6 @@ export default {
             return '- -'
           }
         }
-      }, {
-        title: '操作',
-        dataIndex: 'operation',
-        scopedSlots: {customRender: 'operation'}
       }]
     }
   },
