@@ -88,6 +88,10 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
             rentOrderInfo.setRentHour((int) hours);
         }
 
+        rentOrderInfo.setStatus("0");
+        rentOrderInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
+        rentOrderInfo.setStartDate(DateUtil.formatDateTime(new Date()));
+
         // 获取用户信息
         UserInfo userInfo = userInfoMapper.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, rentOrderInfo.getUserId()));
         // 获取器材信息
@@ -96,6 +100,8 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
             DeviceInfo deviceInfo = deviceInfoMapper.selectById(rentOrderInfo.getDeviceId());
             // 租借价格
             BigDecimal rentPrice = NumberUtil.mul(deviceInfo.getUnitPrice(), rentOrderInfo.getRentHour());
+            rentOrderInfo.setUnitPrice(deviceInfo.getUnitPrice());
+
             // 押金
             if (userInfo != null && userInfo.getCreditScore() > 90) {
                 rentOrderInfo.setDepositPrice(BigDecimal.ZERO);
@@ -198,7 +204,7 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
                 throw new FebsException("用户还有未支付的订单，无法进行租借");
             }
         }
-        return false;
+        return true;
     }
 
     /**

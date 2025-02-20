@@ -81,4 +81,36 @@
         </if>
         order by di.create_date desc
     </select>
+
+    <!-- 获取当前可用器械列表 -->
+    <select id="queryOnlineDevice" resultType="java.util.LinkedHashMap">
+        select di.id,
+               di.code,
+               di.name,
+               di.type_id,
+               di.images,
+               di.content,
+               di.model,
+               di.brand,
+               di.deposit_price,
+               di.unit_price,
+               di.charge_person,
+               di.contact,
+               di.status,
+               di.out_flag,
+               di.supplier_id,
+               di.create_date,
+               dti.name as typeName,
+               dti.images as typeImages,
+               ei.name as supplierName,
+               ei.corporate_representative_phone as supplierPhone
+        from device_info di
+                 left join device_type_info dti on
+            (dti.id = di.type_id)
+                 left join enterprise_info ei on
+            (ei.id = di.supplier_id)
+        where 1 = 1
+        and di.out_flag = 1
+        and di.status = 1
+    </select>
 </mapper>

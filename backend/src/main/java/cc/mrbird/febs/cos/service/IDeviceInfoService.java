@@ -29,4 +29,11 @@ public interface IDeviceInfoService extends IService<DeviceInfo> {
      * @return 结果
      */
     List<LinkedHashMap<String, Object>> queryDeviceList();
+
+    /**
+     * 获取当前可用器械列表
+     *
+     * @return 结果
+     */
+    List<LinkedHashMap<String, Object>> queryOnlineDevice();
 }

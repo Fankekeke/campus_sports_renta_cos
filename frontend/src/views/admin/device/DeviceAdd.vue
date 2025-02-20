@@ -100,11 +100,17 @@ export default {
       form: this.$form.createForm(this),
       loading: false,
       fileList: [],
+      consumableType: [],
       previewVisible: false,
       previewImage: ''
     }
   },
   methods: {
+    getConsumableType () {
+      this.$get('/cos/device-type-info/list').then((r) => {
+        this.consumableType = r.data.data
+      })
+    },
     handleCancel () {
       this.previewVisible = false
     },

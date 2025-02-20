@@ -2,13 +2,11 @@ package cc.mrbird.febs.cos.controller;
 
 
 import cc.mrbird.febs.common.utils.R;
+import cc.mrbird.febs.cos.entity.BulletinInfo;
 import cc.mrbird.febs.cos.entity.CreditRecordInfo;
 import cc.mrbird.febs.cos.entity.MessageInfo;
 import cc.mrbird.febs.cos.entity.UserInfo;
-import cc.mrbird.febs.cos.service.ICreditRecordInfoService;
-import cc.mrbird.febs.cos.service.IMailService;
-import cc.mrbird.febs.cos.service.IMessageInfoService;
-import cc.mrbird.febs.cos.service.IUserInfoService;
+import cc.mrbird.febs.cos.service.*;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -20,6 +18,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -36,6 +35,8 @@ public class UserInfoController {
 
     private final IMessageInfoService messageInfoService;
 
+    private final IBulletinInfoService bulletinInfoService;
+
     private final TemplateEngine templateEngine;
 
     private final IMailService mailService;
@@ -50,6 +51,23 @@ public class UserInfoController {
     @GetMapping("/page")
     public R page(Page<UserInfo> page, UserInfo userInfo) {
         return R.ok(userInfoService.selectUserPage(page, userInfo));
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    @GetMapping("/selectMemberByUserId/{userId}")
+    public R selectMemberByUserId(@PathVariable("userId") Integer userId) {
+        // 返回数据
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        UserInfo userInfo = userInfoService.getOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, 1));
+        result.put("user", userInfo);
+        List<BulletinInfo> userInfoList = bulletinInfoService.list(Wrappers.<BulletinInfo>lambdaQuery().eq(BulletinInfo::getRackUp, 1));
+        result.put("bulletin", userInfoList);
+        return R.ok(result);
     }
 
     /**

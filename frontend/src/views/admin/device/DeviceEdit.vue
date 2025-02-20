@@ -19,41 +19,53 @@
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label='价格' v-bind="formItemLayout">
+          <a-form-item label='器材类型' v-bind="formItemLayout">
+            <a-select v-decorator="[
+            'typeId',
+            { spaces: [{ required: true, message: '请输入器材类型!' }] }
+            ]" style="width: 100%">
+              <a-select-option v-for="(item, index) in consumableType" :value="item.id" :key="index">{{ item.name }}</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='型号' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'model',
+            { spaces: [{ required: true, message: '请输入型号!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='品牌' v-bind="formItemLayout">
+            <a-input v-decorator="[
+            'brand',
+            { spaces: [{ required: true, message: '请输入品牌!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='押金' v-bind="formItemLayout">
             <a-input-number :min="1" style="width: 100%" v-decorator="[
-            'price',
-            { spaces: [{ required: true, message: '请输入价格!' }] }
+            'depositPrice',
+            { spaces: [{ required: true, message: '请输入押金!' }] }
+            ]"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
+          <a-form-item label='单价/小时' v-bind="formItemLayout">
+            <a-input-number :min="1" style="width: 100%" v-decorator="[
+            'unitPrice',
+            { spaces: [{ required: true, message: '请输入单价/小时!' }] }
             ]"/>
           </a-form-item>
         </a-col>
         <a-col :span="24">
-          <a-form-item label='器材地点' v-bind="formItemLayout">
+          <a-form-item label='器械备注' v-bind="formItemLayout">
             <a-textarea :rows="6" v-decorator="[
-            'space',
-             { spaces: [{ required: true, message: '请输入器材地点!' }] }
+            'content',
+             { spaces: [{ required: true, message: '请输入器械备注!' }] }
             ]"/>
-          </a-form-item>
-        </a-col>
-        <a-col :span="24">
-          <a-form-item label='图册' v-bind="formItemLayout">
-            <a-upload
-              name="avatar"
-              action="http://127.0.0.1:9527/file/fileUpload/"
-              list-type="picture-card"
-              :file-list="fileList"
-              @preview="handlePreview"
-              @change="picHandleChange"
-            >
-              <div v-if="fileList.length < 8">
-                <a-icon type="plus" />
-                <div class="ant-upload-text">
-                  Upload
-                </div>
-              </div>
-            </a-upload>
-            <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel">
-              <img alt="example" style="width: 100%" :src="previewImage" />
-            </a-modal>
           </a-form-item>
         </a-col>
       </a-row>
@@ -101,11 +113,20 @@ export default {
       form: this.$form.createForm(this),
       loading: false,
       fileList: [],
+      consumableType: [],
       previewVisible: false,
       previewImage: ''
     }
   },
+  mounted () {
+    this.getConsumableType()
+  },
   methods: {
+    getConsumableType () {
+      this.$get('/cos/device-type-info/list').then((r) => {
+        this.consumableType = r.data.data
+      })
+    },
     handleCancel () {
       this.previewVisible = false
     },
@@ -130,7 +151,7 @@ export default {
     },
     setFormValues ({...space}) {
       this.rowId = space.id
-      let fields = ['name', 'price', 'space']
+      let fields = ['name', 'typeId', 'model', 'brand', 'depositPrice', 'unitPrice', 'content']
       let obj = {}
       Object.keys(space).forEach((key) => {
         if (key === 'images') {
@@ -170,7 +191,7 @@ export default {
         values.images = images.length > 0 ? images.join(',') : null
         if (!err) {
           this.loading = true
-          this.$put('/cos/space-info', {
+          this.$put('/cos/device-info', {
             ...values
           }).then((r) => {
             this.reset()

@@ -67,7 +67,7 @@ public class DeviceInfoController {
      */
     @GetMapping("/queryOnlineDevice")
     public R queryOnlineDevice() {
-        return R.ok(deviceInfoService.list(Wrappers.<DeviceInfo>lambdaQuery().eq(DeviceInfo::getOutFlag, 0).eq(DeviceInfo::getStatus, "1")));
+        return R.ok(deviceInfoService.queryOnlineDevice());
     }
 
     /**

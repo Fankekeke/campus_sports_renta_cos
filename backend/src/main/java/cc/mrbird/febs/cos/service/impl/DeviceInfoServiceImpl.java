@@ -40,4 +40,14 @@ public class DeviceInfoServiceImpl extends ServiceImpl<DeviceInfoMapper, DeviceI
     public List<LinkedHashMap<String, Object>> queryDeviceList() {
         return baseMapper.queryDeviceList();
     }
+
+    /**
+     * 获取当前可用器械列表
+     *
+     * @return 结果
+     */
+    @Override
+    public List<LinkedHashMap<String, Object>> queryOnlineDevice() {
+        return baseMapper.queryOnlineDevice();
+    }
 }

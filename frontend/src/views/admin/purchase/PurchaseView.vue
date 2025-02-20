@@ -6,13 +6,6 @@
       </a-button>
     </template>
     <div style="font-size: 13px" v-if="rurchaseData !== null">
-      <div style="padding-left: 24px;padding-right: 24px;margin-bottom: 50px;margin-top: 50px">
-        <a-steps :current="current" progress-dot size="small">
-          <a-step title="已提交" />
-          <a-step title="正在采购" />
-          <a-step title="采购完成" />
-        </a-steps>
-      </div>
       <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">基础信息</span></a-col>
         <a-col :span="8"><b>采购单号：</b>
@@ -22,7 +15,7 @@
           {{ rurchaseData.totalPrice }} 元
         </a-col>
         <a-col :span="8"><b>采购人：</b>
-          {{ rurchaseData.chargePerson }}
+          {{ rurchaseData.staffName }}
         </a-col>
       </a-row>
       <br/>
@@ -72,22 +65,22 @@ export default {
     columns () {
       return [{
         title: '器械名称',
-        dataIndex: 'name',
+        dataIndex: 'name'
       }, {
         title: '型号',
-        dataIndex: 'model',
+        dataIndex: 'model'
       }, {
         title: '数量',
-        dataIndex: 'num',
+        dataIndex: 'num'
       }, {
         title: '所属类型',
-        dataIndex: 'typeId',
+        dataIndex: 'type'
       }, {
         title: '品牌',
-        dataIndex: 'brand',
+        dataIndex: 'brand'
       }, {
         title: '单价',
-        dataIndex: 'unitPrice',
+        dataIndex: 'unitPrice'
       }]
     }
   },

@@ -18,7 +18,7 @@
                 label="采购人"
                 :labelCol="{span: 5}"
                 :wrapperCol="{span: 18, offset: 1}">
-                <a-input v-model="queryParams.chargePerson"/>
+                <a-input v-model="queryParams.staffName"/>
               </a-form-item>
             </a-col>
             <a-col :md="6" :sm="24">
@@ -39,7 +39,7 @@
     </div>
     <div>
       <div class="operator">
-<!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
+        <a-button type="primary" ghost @click="add">新增</a-button>
         <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
@@ -134,7 +134,19 @@ export default {
         dataIndex: 'code'
       }, {
         title: '采购人',
-        dataIndex: 'chargePerson'
+        dataIndex: 'staffName'
+      }, {
+        title: '员工照片',
+        dataIndex: 'staffImages',
+        customRender: (text, record, index) => {
+          if (!record.staffImages) return <a-avatar shape="square" icon="user" />
+          return <a-popover>
+            <template slot="content">
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.staffImages.split(',')[0] } />
+            </template>
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.staffImages.split(',')[0] } />
+          </a-popover>
+        }
       }, {
         title: '备注',
         dataIndex: 'content'

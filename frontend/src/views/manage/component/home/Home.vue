@@ -35,7 +35,7 @@
                   <a-col :span="4"><a-icon type="arrow-up" style="font-size: 30px;margin-top: 3px"/></a-col>
                   <a-col :span="18" style="font-size: 28px;font-weight: 500;font-family: SimHei">
                     {{ titleData.incomeYear }}
-                    <span style="font-size: 20px;margin-top: 3px">单</span>
+                    <span style="font-size: 20px;margin-top: 3px">元</span>
                   </a-col>
                 </a-row>
               </a-card>
@@ -294,7 +294,7 @@ export default {
           values.push(itemData)
           this.series1 = values
         }
-        this.series[0].data = r.data.orderAmountDays.map(obj => { return obj.amount })
+        this.series[0].data = r.data.orderAmountDays.map(obj => { return obj.price })
         this.chartOptions.xaxis.categories = r.data.orderAmountDays.map(obj => { return obj.days })
         // if (r.data.orderRate.length !== 0) {
         //   this.series2 = r.data.orderRate.map(obj => { return obj.count })

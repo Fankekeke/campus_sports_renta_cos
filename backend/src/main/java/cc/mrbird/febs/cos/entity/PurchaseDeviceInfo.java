@@ -64,4 +64,7 @@ public class PurchaseDeviceInfo implements Serializable {
 
     @TableField(exist = false)
     private String supplierName;
+
+    @TableField(exist = false)
+    private String staffName;
 }

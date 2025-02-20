@@ -3,7 +3,7 @@
     <div class="content" style="margin: 0 auto">
       <div class="top">
         <div class="header">
-          <span class="title" style="color: white">校园运动器械租赁系统</span>
+          <span class="title" style="color: #4a4a48">校园运动器械租赁系统</span>
         </div>
         <div class="desc"></div>
       </div>
@@ -49,7 +49,8 @@ export default {
     height: 100vh;
     overflow: auto;
     background: rgb(234, 234, 234) url(../../../static/img/house.jpg) no-repeat center ;
-    background-size: cover;
+    background-size: contain;
+    background-color: white;
     .content {
       padding: 32px 0;
       flex: 1;

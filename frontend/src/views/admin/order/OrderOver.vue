@@ -55,10 +55,10 @@
       <br/>
       <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">订单信息</span></a-col>
-        <a-col :span="8"><b>车位名称：</b>
+        <a-col :span="8"><b>器材名称：</b>
           {{ orderData.spaceName ? orderData.spaceName : '- -' }}
         </a-col>
-        <a-col :span="16"><b>车位地点：</b>
+        <a-col :span="16"><b>器材地点：</b>
           {{ orderData.spaceAddress ? orderData.spaceAddress : '- -' }}
         </a-col>
       </a-row>

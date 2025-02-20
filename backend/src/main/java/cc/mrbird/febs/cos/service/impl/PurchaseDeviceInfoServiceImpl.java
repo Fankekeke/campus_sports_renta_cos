@@ -81,23 +81,31 @@ public class PurchaseDeviceInfoServiceImpl extends ServiceImpl<PurchaseDeviceInf
         // 计算总价格
         for (PurchaseDetailInfo purchaseDetailInfo : purchaseDeviceList) {
             purchaseDetailInfo.setPurchaseCode(purchaseDeviceInfo.getCode());
-            purchaseDeviceInfo.setTotalPrice(NumberUtil.mul(purchaseDetailInfo.getNum(), purchaseDetailInfo.getUnitPrice()));
 
-            // 添加器材
-            DeviceInfo deviceInfo = new DeviceInfo();
-            deviceInfo.setCode("DEV-" + UUID.randomUUID());
-            deviceInfo.setName(purchaseDetailInfo.getName());
-            deviceInfo.setTypeId(purchaseDetailInfo.getTypeId());
-            deviceInfo.setModel(purchaseDetailInfo.getModel());
-            deviceInfo.setChargePerson(purchaseDeviceInfo.getChargePerson());
-            deviceInfo.setBrand(purchaseDetailInfo.getBrand());
-            deviceInfo.setStatus("1");
-            deviceInfo.setOutFlag("0");
-            deviceInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
-            deviceInfo.setSupplierId(purchaseDeviceInfo.getSupplierId());
-            deviceInfo.setDepositPrice(BigDecimal.ZERO);
-            deviceInfo.setUnitPrice(BigDecimal.ZERO);
-            deviceInfoList.add(deviceInfo);
+            purchaseDeviceInfo.setTotalPrice(NumberUtil.add(purchaseDeviceInfo.getTotalPrice(), NumberUtil.mul(purchaseDetailInfo.getNum(), purchaseDetailInfo.getUnitPrice())));
+
+            if (purchaseDetailInfo.getNum() == null) {
+                purchaseDetailInfo.setNum(1);
+            }
+
+            for (int i = 0; i < purchaseDetailInfo.getNum(); i++) {
+                // 添加器材
+                DeviceInfo deviceInfo = new DeviceInfo();
+                deviceInfo.setCode("DEV-" + UUID.randomUUID());
+                deviceInfo.setName(purchaseDetailInfo.getName());
+                deviceInfo.setTypeId(purchaseDetailInfo.getTypeId());
+                deviceInfo.setModel(purchaseDetailInfo.getModel());
+                deviceInfo.setChargePerson(purchaseDeviceInfo.getChargePerson());
+                deviceInfo.setBrand(purchaseDetailInfo.getBrand());
+                deviceInfo.setStatus("1");
+                deviceInfo.setOutFlag("0");
+                deviceInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
+                deviceInfo.setSupplierId(purchaseDeviceInfo.getSupplierId());
+                deviceInfo.setDepositPrice(BigDecimal.ZERO);
+                deviceInfo.setUnitPrice(BigDecimal.ZERO);
+                deviceInfoList.add(deviceInfo);
+            }
+
         }
 
         deviceInfoService.saveBatch(deviceInfoList);

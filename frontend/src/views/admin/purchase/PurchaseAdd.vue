@@ -2,7 +2,7 @@
   <a-drawer
     title="采购入库"
     :maskClosable="false"
-    placement="right"
+    placement="left"
     :closable="false"
     :visible="show"
     :width="1200"
@@ -13,18 +13,22 @@
       <a-row :gutter="20">
         <a-col :span="12">
           <a-form-item label='采购人' v-bind="formItemLayout">
-            <a-input v-decorator="[
-            'chargePerson',
-             { rules: [{ required: true, message: '请输入采购人!' }] }
-            ]"/>
+            <a-select v-decorator="[
+              'chargePerson',
+              { rules: [{ required: true, message: '请输入采购人!' }] }
+              ]">
+              <a-select-option :value="item.id" v-for="(item, index) in staffList" :key="index">{{ item.name }}</a-select-option>
+            </a-select>
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item label='备注' v-bind="formItemLayout">
-            <a-input v-decorator="[
-            'content',
-             { rules: [{ required: true, message: '请输入备注消息!' }] }
-            ]"/>
+          <a-form-item label='选择供应商' v-bind="formItemLayout">
+            <a-select v-decorator="[
+              'supplierId',
+              { rules: [{ required: true, message: '请输入供应商!' }] }
+              ]">
+              <a-select-option :value="item.id" v-for="(item, index) in supplierList" :key="index">{{ item.name }}</a-select-option>
+            </a-select>
           </a-form-item>
         </a-col>
         <a-col :span="24">
@@ -136,10 +140,12 @@ export default {
       loading: false,
       dataList: [],
       supplierList: [],
+      staffList: [],
       consumableType: []
     }
   },
   mounted () {
+    this.selectStaffList()
     this.getConsumableType()
     this.selectSupplierList()
   },
@@ -147,6 +153,11 @@ export default {
     getGoodsByNum (num) {
       this.$get('/cos/goods-belong/getGoodsByNum', { num }).then((r) => {
         this.dataList = r.data.data
+      })
+    },
+    selectStaffList () {
+      this.$get(`/cos/staff-info/list`).then((r) => {
+        this.staffList = r.data.data
       })
     },
     selectSupplierList () {

@@ -47,7 +47,6 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">新增</a-button>
         <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
@@ -151,30 +150,20 @@ export default {
         title: '订单用户',
         dataIndex: 'name'
       }, {
-        title: '车牌号码',
-        dataIndex: 'vehicleNumber',
-        customRender: (text, row, index) => {
-          if (text !== null) {
-            return text
-          } else {
-            return '- -'
-          }
-        }
-      }, {
-        title: '车辆图片',
-        dataIndex: 'vehicleImages',
+        title: '用户头像',
+        dataIndex: 'userImages',
         customRender: (text, record, index) => {
-          if (!record.vehicleImages) return <a-avatar shape="square" icon="user" />
+          if (!record.userImages) return <a-avatar shape="square" icon="user" />
           return <a-popover>
             <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.vehicleImages.split(',')[0] } />
+              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
             </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.vehicleImages.split(',')[0] } />
+            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.userImages.split(',')[0] } />
           </a-popover>
         }
       }, {
-        title: '车位名称',
-        dataIndex: 'spaceName',
+        title: '品牌',
+        dataIndex: 'brand',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -183,7 +172,17 @@ export default {
           }
         }
       }, {
-        title: '驶入时间',
+        title: '器材名称',
+        dataIndex: 'name',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '租借开始时间',
         dataIndex: 'startDate',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -193,7 +192,7 @@ export default {
           }
         }
       }, {
-        title: '驶出时间',
+        title: '租借结束时间',
         dataIndex: 'endDate',
         customRender: (text, row, index) => {
           if (text !== null) {
@@ -331,7 +330,7 @@ export default {
         centered: true,
         onOk () {
           let ids = that.selectedRowKeys.join(',')
-          that.$delete('/cos/park-order-info/' + ids).then(() => {
+          that.$delete('/cos/rent-order-info/' + ids).then(() => {
             that.$message.success('删除成功')
             that.selectedRowKeys = []
             that.search()
@@ -404,7 +403,7 @@ export default {
       if (params.delFlag === undefined) {
         delete params.delFlag
       }
-      this.$get('/cos/park-order-info/page', {
+      this.$get('/cos/rent-order-info/page', {
         ...params
       }).then((r) => {
         let data = r.data.data

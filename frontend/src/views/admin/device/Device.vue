@@ -39,7 +39,7 @@
     </div>
     <div>
       <div class="operator">
-        <a-button type="primary" ghost @click="add">新增</a-button>
+<!--        <a-button type="primary" ghost @click="add">新增</a-button>-->
         <a-button @click="batchDelete">删除</a-button>
       </div>
       <!-- 表格区域 -->
@@ -66,9 +66,9 @@
         </template>
         <template slot="numShow" slot-scope="text, record">
           <template>
-            <a-badge v-if="record.outFlag == 0" status="processing"/>
-            <a-badge v-if="record.outFlag == 1" status="success"/>
-            {{ record.code }}
+            <a-badge v-if="record.outFlag == 0" status="error"/>
+            <a-badge v-if="record.outFlag == 1" status="processing"/>
+            {{ record.name }}
           </template>
         </template>
         <template slot="contentShow" slot-scope="text, record">
@@ -83,6 +83,8 @@
         </template>
         <template slot="operation" slot-scope="text, record">
           <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="edit(record)" title="修 改"></a-icon>
+          <a-icon v-if="record.outFlag == '0'" type="caret-down" @click="audit(record.id, 1)" title="上 架" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.outFlag == '1'" type="caret-up" @click="audit(record.id, 0)" title="下 架" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
@@ -148,6 +150,16 @@ export default {
         title: '器材编号',
         scopedSlots: {customRender: 'numShow'}
       }, {
+        title: '器械类型',
+        dataIndex: 'typeName',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
         title: '器材名称',
         dataIndex: 'name',
         customRender: (text, row, index) => {
@@ -160,6 +172,16 @@ export default {
       }, {
         title: '型号',
         dataIndex: 'model',
+        customRender: (text, row, index) => {
+          if (text !== null) {
+            return text
+          } else {
+            return '- -'
+          }
+        }
+      }, {
+        title: '供应商',
+        dataIndex: 'supplierName',
         customRender: (text, row, index) => {
           if (text !== null) {
             return text
@@ -245,6 +267,12 @@ export default {
     this.fetch()
   },
   methods: {
+    audit (id, status) {
+      this.$get('/cos/device-info/updateDevicePutFlag', {id: id, flag: status}).then((r) => {
+        this.$message.success('修改成功')
+        this.search()
+      })
+    },
     onSelectChange (selectedRowKeys) {
       this.selectedRowKeys = selectedRowKeys
     },
