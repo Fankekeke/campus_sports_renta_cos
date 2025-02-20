@@ -6,6 +6,7 @@ import cc.mrbird.febs.common.utils.R;
 import cc.mrbird.febs.cos.entity.RentOrderInfo;
 import cc.mrbird.febs.cos.service.IRentOrderInfoService;
 import cn.hutool.core.date.DateUtil;
+import com.alipay.api.AlipayApiException;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,7 +154,7 @@ public class RentOrderInfoController {
      * @return 结果
      */
     @PostMapping
-    public R save(RentOrderInfo rentOrderInfo) {
+    public R save(RentOrderInfo rentOrderInfo) throws AlipayApiException {
         return R.ok(rentOrderInfoService.addRentOrder(rentOrderInfo));
     }
 

@@ -2,6 +2,7 @@ package cc.mrbird.febs.cos.service;
 
 import cc.mrbird.febs.common.exception.FebsException;
 import cc.mrbird.febs.cos.entity.RentOrderInfo;
+import com.alipay.api.AlipayApiException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -38,7 +39,7 @@ public interface IRentOrderInfoService extends IService<RentOrderInfo> {
      * @param rentOrderInfo 租借订单
      * @return 结果
      */
-    boolean addRentOrder(RentOrderInfo rentOrderInfo);
+    String addRentOrder(RentOrderInfo rentOrderInfo) throws AlipayApiException;
 
     /**
      * 支付回调

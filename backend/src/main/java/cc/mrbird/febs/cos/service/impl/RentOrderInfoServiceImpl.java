@@ -12,6 +12,7 @@ import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alipay.api.AlipayApiException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -53,6 +54,9 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
     private final TemplateEngine templateEngine;
 
     private final IMailService mailService;
+
+    @Autowired
+    private PayService payService;
 
     /**
      * 分页获取租借订单
@@ -120,7 +124,7 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
      * @return 结果
      */
     @Override
-    public boolean addRentOrder(RentOrderInfo rentOrderInfo) {
+    public String addRentOrder(RentOrderInfo rentOrderInfo) throws AlipayApiException {
         rentOrderInfo.setCreateDate(DateUtil.formatDateTime(new Date()));
         // 设置租借订单编号
         rentOrderInfo.setCode("OR-" + System.currentTimeMillis());
@@ -130,7 +134,15 @@ public class RentOrderInfoServiceImpl extends ServiceImpl<RentOrderInfoMapper, R
             rentOrderInfo.setUserId(userInfo.getId());
         }
         rentOrderInfo.setStatus("0");
-        return this.save(rentOrderInfo);
+        this.save(rentOrderInfo);
+
+        AlipayBean alipayBean = new AlipayBean();
+        alipayBean.setOut_trade_no(rentOrderInfo.getCode() + "缴费信息");
+        alipayBean.setSubject(rentOrderInfo.getCode());
+        alipayBean.setTotal_amount(String.valueOf(rentOrderInfo.getTotalPrice()));
+        alipayBean.setBody("");
+        String result = payService.aliPay(alipayBean);
+        return result;
     }
 
     /**

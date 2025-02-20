@@ -213,17 +213,23 @@ export default {
       })
     },
     reserveSpace () {
-      this.form.validateFields((err, values) => {
-        if (!err) {
-          values.spaceId = this.spaceInfo.id
-          this.$post('/cos/reserve-info', {
-            ...values
-          }).then((r) => {
-            this.$message.success('预约成功！预约时间为30分钟')
-            this.visible = false
-            this.getWorkStatusList()
-          })
+      let data = this.orderInfo
+      this.$post('/cos/rent-order-info', {
+        data
+      }).then((r) => {
+        this.$message.success('下单成功！请前往支付')
+        this.visible = false
+        this.getWorkStatusList()
+        const divForm = document.getElementsByTagName('div')
+        if (divForm.length) {
+          document.body.removeChild(divForm[0])
         }
+        const div = document.createElement('div')
+        div.innerHTML = r.data.msg // data就是接口返回的form 表单字符串
+        // console.log(div.innerHTML)
+        document.body.appendChild(div)
+        document.forms[0].setAttribute('target', '_self') // 新开窗口跳转
+        document.forms[0].submit()
       })
     },
     selectMemberByUserId () {
