@@ -225,7 +225,7 @@ export default {
           document.body.removeChild(divForm[0])
         }
         const div = document.createElement('div')
-        div.innerHTML = r.data.msg // data就是接口返回的form 表单字符串
+        div.innerHTML = r.data.data // data就是接口返回的form 表单字符串
         // console.log(div.innerHTML)
         document.body.appendChild(div)
         document.forms[0].setAttribute('target', '_self') // 新开窗口跳转

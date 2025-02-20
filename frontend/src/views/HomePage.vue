@@ -115,6 +115,23 @@ export default {
     }
   },
   methods: {
+    rendOrderMessage () {
+      if (this.currentUser.roleId == 75) {
+        this.$get(`/cos/rent-order-info/rendOrderMessage`).then((r) => {
+          let data = r.data.data
+          if (data) {
+            this.$notification.open({
+              message: '临期归还通知',
+              description:
+                '您好，您当前有部分订单即将临期！请尽快归还.',
+              onClick: () => {
+                console.log('Notification Clicked!');
+              },
+            });
+          }
+        })
+      }
+    },
     welcome () {
       const date = new Date()
       const hour = date.getHours()

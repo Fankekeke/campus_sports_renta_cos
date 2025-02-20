@@ -60,7 +60,7 @@
                :scroll="{ x: 900 }"
                @change="handleTableChange">
         <template slot="operation" slot-scope="text, record">
-          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="orderOverViewOpen(record)" title="订单完成" v-if="record.status == 2"></a-icon>
+          <a-icon type="setting" theme="twoTone" twoToneColor="#4a9ff5" @click="returnDevice(record)" title="器械归还" v-if="record.status == 1"></a-icon>
           <a-icon type="control" theme="twoTone" @click="download(record)" title="下 载" style="margin-left: 15px" v-if="record.status == 1"></a-icon>
           <a-icon type="file-search" @click="orderViewOpen(record)" title="详 情" style="margin-left: 15px"></a-icon>
         </template>
@@ -251,6 +251,22 @@ export default {
     this.fetch()
   },
   methods: {
+    returnDevice (row) {
+      let that = this
+      this.$confirm({
+        title: '是否归还当前器材?',
+        content: '当您点击确定按钮后，此记录将会提交',
+        centered: true,
+        onOk () {
+          that.$get('/cos/rent-order-info/returnDevice', {orderCode: row.code}).then(() => {
+            that.$message.success('提交成功')
+            that.search()
+          })
+        },
+        onCancel () {
+        }
+      })
+    },
     download (row) {
       this.$message.loading('正在生成', 0)
       let spread = newSpread('textTable')

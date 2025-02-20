@@ -159,9 +159,10 @@ export default {
   watch: {
     orderShow: function (value) {
       if (value) {
-        if (this.orderData.vehicleImages) {
-          this.imagesInit(this.orderData.vehicleImages)
+        if (this.orderData.typeImages) {
+          this.imagesInit(this.orderData.typeImages)
         }
+        this.queryOrderDetail(this.orderData.code)
       }
     }
   },
