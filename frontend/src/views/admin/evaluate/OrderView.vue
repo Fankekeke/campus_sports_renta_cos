@@ -14,40 +14,32 @@
           <a-step title="已完成" />
         </a-steps>
       </div>
-      <a-row style="padding-left: 24px;padding-right: 24px;">
+      <a-row style="padding-left: 24px;padding-right: 24px;" v-if="userInfo != null">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">用户信息</span></a-col>
         <a-col :span="8"><b>用户编号：</b>
-          {{ orderData.code ? orderData.code : '- -' }}
+          {{ userInfo.code ? userInfo.code : '- -' }}
         </a-col>
         <a-col :span="8"><b>用户名称：</b>
-          {{ orderData.name ? orderData.name : '- -' }}
+          {{ userInfo.name ? userInfo.name : '- -' }}
         </a-col>
         <a-col :span="8"><b>联系方式：</b>
-          {{ orderData.phone }}
+          {{ userInfo.phone }}
         </a-col>
       </a-row>
       <br/>
       <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">器材信息</span></a-col>
-        <a-col :span="8"><b>器材编号：</b>
-          {{ deviceInfo.code ? deviceInfo.code : '- -' }}
-        </a-col>
         <a-col :span="8"><b>器材名称：</b>
           {{ deviceInfo.name ? deviceInfo.name : '- -' }}
         </a-col>
         <a-col :span="8"><b>型号：</b>
           {{ deviceInfo.model ? deviceInfo.model : '- -' }}
         </a-col>
-      </a-row>
-      <br/>
-      <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col :span="8"><b>品牌：</b>
           {{ deviceInfo.brand ? deviceInfo.brand : '- -' }}
         </a-col>
-        <a-col :span="8"><b>负责人：</b>
-          {{ deviceInfo.chargePerson ? deviceInfo.chargePerson : '- -' }}
-        </a-col>
       </a-row>
+      <br/>
       <br/>
       <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">器材图片</span></a-col>
@@ -104,6 +96,16 @@
         </a-col>
       </a-row>
       <br/>
+      <br/>
+      <a-row style="padding-left: 24px;padding-right: 24px;">
+        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">评价信息</span></a-col>
+        <a-col :span="6"><b>评价得分：</b>
+          {{ orderData.score }}
+        </a-col>
+        <a-col :span="18"><b>评价备注：</b>
+          {{ orderData.content ? orderData.content : '- -' }}
+        </a-col>
+      </a-row>
     </div>
   </a-modal>
 </template>
@@ -159,9 +161,11 @@ export default {
   watch: {
     orderShow: function (value) {
       if (value) {
-        if (this.orderData.vehicleImages) {
-          this.imagesInit(this.orderData.vehicleImages)
+        this.current = this.orderData.status
+        if (this.orderData.typeImages) {
+          this.imagesInit(this.orderData.typeImages)
         }
+        this.queryOrderDetail(this.orderData.code)
       }
     }
   },

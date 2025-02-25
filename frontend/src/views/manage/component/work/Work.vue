@@ -14,6 +14,27 @@
     </div>
     <br/>
     <br/>
+    <a-row style="margin-top: 15px">
+      <a-col :span="24">
+        <a-card hoverable :loading="loading" :bordered="false" title="公告信息" style="margin-top: 15px">
+          <div style="padding: 0 22px">
+            <a-list item-layout="vertical" :pagination="pagination" :data-source="newsList">
+              <a-list-item slot="renderItem" key="item.title" slot-scope="item, index">
+                <template slot="actions">
+              <span key="message">
+                <a-icon type="message" style="margin-right: 8px" />
+                {{ item.date }}
+              </span>
+                </template>
+                <a-list-item-meta :description="item.content" style="font-size: 14px">
+                  <a slot="title">{{ item.title }}</a>
+                </a-list-item-meta>
+              </a-list-item>
+            </a-list>
+          </div>
+        </a-card>
+      </a-col>
+    </a-row>
     <a-row :gutter="30" v-if="userInfo != null">
       <a-col :span="6">
         <a-card :bordered="false">
@@ -38,6 +59,11 @@
       </a-col>
     </a-row>
     <div style="background:#ECECEC; padding:30px;margin-top: 30px;margin-bottom: 30px">
+      <a-radio-group button-style="solid" v-model="checkFlag" style="width: 100%">
+        <a-radio-button :value="item.id" style="text-align: center" v-for="(item, index) in consumableType" :key="index">
+          item.name
+        </a-radio-button>
+      </a-radio-group>
       <a-row :gutter="30">
         <a-col :span="4" v-for="(item, index) in statusList" :key="index">
           <div style="background: #f8f8f8">
@@ -146,16 +172,32 @@ export default {
   data () {
     return {
       form: this.$form.createForm(this),
+      pagination: {
+        onChange: page => {
+          console.log(page)
+        },
+        pageSize: 3
+      },
       formItemLayout,
       visible: false,
+      checkFlag: 0,
       statusList: [],
+      currentDataList: [],
+      bulletinList: [],
       vehicleList: [],
+      consumableType: [],
       loading: false,
       userInfo: null,
       memberInfo: null,
       spaceInfo: null,
       orderInfo: null,
       newsList: []
+    }
+  },
+  watch: {
+    checkFlag: function (value) {
+      this.currentTab = value
+      this.tabChange(value)
     }
   },
   computed: {
@@ -166,8 +208,22 @@ export default {
   mounted () {
     this.getWorkStatusList()
     this.selectMemberByUserId()
+    this.getConsumableType()
   },
   methods: {
+    tabChange (checkFlag) {
+      if (this.statusList) {
+        let result = this.statusList.filter(item => item.typeId === checkFlag)
+        if (result) {
+          this.currentDataList = result
+        }
+      }
+    },
+    getConsumableType () {
+      this.$get('/cos/device-type-info/list').then((r) => {
+        this.consumableType = r.data.data
+      })
+    },
     onChange (date, dateString) {
       console.log(dateString)
       if (dateString) {
@@ -243,6 +299,7 @@ export default {
     getWorkStatusList () {
       this.$get(`/cos/device-info//queryOnlineDevice`).then((r) => {
         this.statusList = r.data.data
+        this.currentDataList = r.data.data
       })
     }
   }
