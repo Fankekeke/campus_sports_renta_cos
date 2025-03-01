@@ -18,6 +18,17 @@
         roi.start_date,
         roi.end_date,
         roi.total_price,
+
+        roi.code,
+        roi.start_date,
+        roi.end_date,
+        roi.rent_hour,
+        roi.unit_price,
+        roi.deposit_price,
+        roi.total_price,
+        roi.status,
+        roi.return_date,
+
         di.name,
         di.content,
         di.model,

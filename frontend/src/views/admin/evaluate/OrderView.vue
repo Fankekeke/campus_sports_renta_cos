@@ -165,7 +165,7 @@ export default {
         if (this.orderData.typeImages) {
           this.imagesInit(this.orderData.typeImages)
         }
-        this.queryOrderDetail(this.orderData.code)
+        this.queryOrderDetail(this.orderData.orderCode)
       }
     }
   },
